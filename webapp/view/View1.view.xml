@@ -1,0 +1,68 @@
+<mvc:View controllerName="project1.controller.View1"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:uxap="sap.uxap"
+    xmlns:layout="sap.ui.layout">
+    <uxap:ObjectPageLayout id="ObjectPageLayout" showTitleInHeaderContent="true" upperCaseAnchorBar="false">
+        <uxap:headerTitle>
+            <uxap:ObjectPageDynamicHeaderTitle id="headerTitle">
+                <uxap:expandedHeading>
+                    <Title id="expandedTitle" text="{lastName}, {firstName}" wrapping="true" class="sapUiSmallMarginEnd"/>
+                </uxap:expandedHeading>
+                <uxap:snappedHeading>
+                    <Title id="snappedTitle" text="{lastName}, {firstName}" wrapping="true"/>
+                </uxap:snappedHeading>
+            </uxap:ObjectPageDynamicHeaderTitle>
+        </uxap:headerTitle>
+
+        <uxap:headerContent>
+            <FlexBox id="headerFlex" wrap="Wrap" alignItems="Start" width="100%">
+                <Avatar id="userAvatar" 
+                    src="{view>/photoUrl}" 
+                    displaySize="L" 
+                    class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                    displayShape="Circle"/>
+                <VBox id="headerInfo" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                    <Label id="lblJobHeader" text="{i18n>labelJobTitle}" design="Bold" />
+                    <Text id="txtJobHeader" text="{title}" />
+                    <Label id="lblDeptHeader" text="{i18n>labelDepartment}" design="Bold" class="sapUiTinyMarginTop" />
+                    <Text id="txtDeptHeader" text="{department}" />
+                    <ObjectStatus id="statusUser" text="Active" state="Success" inverted="true" class="sapUiSmallMarginTop" />
+                </VBox>
+            </FlexBox>
+        </uxap:headerContent>
+
+        <uxap:sections>
+            <uxap:ObjectPageSection id="sectionGeneral" title="{i18n>sectionGeneralInfo}">
+                <uxap:subSections>
+                    <uxap:ObjectPageSubSection id="subSectionGeneral">
+                        <f:SimpleForm id="formGeneral" editable="false" layout="ColumnLayout">
+                            <f:content>
+                                <Label id="lblEmail" text="{i18n>labelEmail}" />
+                                <Text id="txtEmail" text="{email}" />
+                                <Label id="lblUsername" text="Username" />
+                                <Text id="txtUsername" text="{username}" />
+                            </f:content>
+                        </f:SimpleForm>
+                    </uxap:ObjectPageSubSection>
+                </uxap:subSections>
+            </uxap:ObjectPageSection>
+
+            <uxap:ObjectPageSection id="sectionOrg" title="Organization">
+                <uxap:subSections>
+                    <uxap:ObjectPageSubSection id="subSectionOrg">
+                        <f:SimpleForm id="formOrg" editable="false" layout="ColumnLayout">
+                            <f:content>
+                                <Label id="lblLocation" text="Location" />
+                                <Text id="txtLocation" text="{location}" />
+                                <Label id="lblDivision" text="Division" />
+                                <Text id="txtDivision" text="{division}" />
+                            </f:content>
+                        </f:SimpleForm>
+                    </uxap:ObjectPageSubSection>
+                </uxap:subSections>
+            </uxap:ObjectPageSection>
+        </uxap:sections>
+    </uxap:ObjectPageLayout>
+</mvc:View>
