@@ -1,7 +1,31 @@
 <mvc:View controllerName="project1.controller.App"
     displayBlock="true"
     xmlns:mvc="sap.ui.core.mvc"
+    xmlns:tnt="sap.tnt"
     xmlns="sap.m">
-    <App id="app">
-    </App>
+    <Shell id="shell">
+        <tnt:ToolPage id="toolPage">
+            <tnt:header>
+                <tnt:ToolHeader>
+                    <Button id="sideNavigationToggleButton"
+                        icon="sap-icon://menu2"
+                        type="Transparent"
+                        press=".onSideNavButtonPress" />
+                    <Title text="{i18n>appTitle}" level="H1" />
+                </tnt:ToolHeader>
+            </tnt:header>
+            <tnt:sideContent>
+                <tnt:SideNavigation>
+                    <tnt:NavigationList>
+                        <tnt:NavigationListItem text="{i18n>menuPeopleProfile}" icon="sap-icon://employee" />
+                        <tnt:NavigationListItem text="{i18n>menuMassJobUpdate}" icon="sap-icon://multi-select" />
+                        <tnt:NavigationListItem text="{i18n>menuPerformanceReview}" icon="sap-icon://past" />
+                    </tnt:NavigationList>
+                </tnt:SideNavigation>
+            </tnt:sideContent>
+            <tnt:mainContents>
+                <App id="app" class="appContainer" />
+            </tnt:mainContents>
+        </tnt:ToolPage>
+    </Shell>
 </mvc:View>

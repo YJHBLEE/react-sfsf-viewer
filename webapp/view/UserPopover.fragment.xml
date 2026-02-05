@@ -1,0 +1,13 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Popover
+        showHeader="false"
+        placement="Bottom"
+        class="sapUiContentPadding">
+        <VBox>
+            <Text text="{user>/name}" />
+            <Text text="{user>/email}" />
+        </VBox>
+    </Popover>
+</core:FragmentDefinition>

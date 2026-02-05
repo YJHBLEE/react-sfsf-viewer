@@ -1,0 +1,42 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:f="sap.ui.layout.form">
+    <Dialog id="jobDetailDialog" title="{i18n>dialogJobDetailTitle}" contentWidth="600px">
+        <f:SimpleForm editable="false" layout="ColumnLayout" columnsM="2" columnsL="2">
+            <f:content>
+                <core:Title text="Event Information" />
+                <Label text="{i18n>columnEvent}" />
+                <Text text="{view>eventNav/label}" />
+                <Label text="{i18n>columnEventReason}" />
+                <Text text="{view>eventReasonNav/label}" />
+                <Label text="{i18n>columnStartDate}" />
+                <Text text="{path: 'view>startDate', type: 'sap.ui.model.type.Date', formatOptions: {style: 'long'}}" />
+
+                <core:Title text="Organization Details" />
+                <Label text="{i18n>labelCompany}" />
+                <Text text="{view>company}" />
+                <Label text="{i18n>labelBusinessUnit}" />
+                <Text text="{view>businessUnit}" />
+                <Label text="{i18n>labelDivision}" />
+                <Text text="{view>division}" />
+                <Label text="{i18n>labelDepartment}" />
+                <Text text="{view>department}" />
+                <Label text="{i18n>labelLocation}" />
+                <Text text="{view>location}" />
+
+                <core:Title text="Job Details" />
+                <Label text="{i18n>columnJobTitle}" />
+                <Text text="{view>jobTitle}" />
+                <Label text="{i18n>labelPosition}" />
+                <Text text="{view>position}" />
+                <Label text="{i18n>labelGrade}" />
+                <Text text="{view>payGrade}" />
+                <Label text="FTE" />
+                <Text text="{view>fte}" />
+                <Label text="Notes" />
+                <Text text="{view>notes}" />
+            </f:content>
+        </f:SimpleForm>
+        <beginButton>
+            <Button text="{i18n>btnClose}" press=".onCloseDialog" type="Emphasized" />
+        </beginButton>
+    </Dialog>
+</core:FragmentDefinition>

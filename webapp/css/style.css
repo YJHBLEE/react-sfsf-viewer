@@ -1,1 +1,41 @@
-/* Enter your custom styles here */
+/* 메인 컨텐츠 배경색 및 여백 설정 */
+.sapTntToolPageMainContents {
+    background-color: #f0f2f5 !important;
+    padding: 1rem !important;
+}
+
+/* 스켈레톤 로딩 애니메이션 */
+.skeleton {
+    background: linear-gradient(90deg, #f0f2f5 25%, #e0e2e5 50%, #f0f2f5 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+/* 원형 스켈레톤 (아바타용) */
+.skeleton.circle {
+    border-radius: 50% !important;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* 모바일 레이오버 설정 */
+.sap-phone .sapTntToolPageAside {
+    position: absolute !important;
+    z-index: 10;
+    height: 100%;
+    box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+/* 모바일에서 메뉴가 닫혔을 때 왼쪽으로 숨김 */
+.sap-phone .sapTntToolPage:not(.sapTntToolPageAsideExpanded) .sapTntToolPageAside {
+    transform: translateX(-100%);
+}
+
+.sap-phone .sapTntToolPageAsideExpanded .sapTntToolPageAside {
+    transform: translateX(0);
+}
