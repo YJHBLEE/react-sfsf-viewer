@@ -1,0 +1,17 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Popover
+        title="사용자 정보"
+        class="sapUiContentPadding"
+        placement="Bottom">
+        <VBox alignItems="Center" spacing="Small">
+            <Avatar
+                displaySize="L"
+                displayShape="Circle"
+                initials="{= ${userInfo>/firstname}.substring(0,1) + ${userInfo>/lastname}.substring(0,1) }" />
+            <Title text="{userInfo>/displayName}" level="H4" />
+            <Text text="{userInfo>/email}" />
+        </VBox>
+    </Popover>
+</core:FragmentDefinition>

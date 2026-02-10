@@ -4,31 +4,31 @@
             <f:content>
                 <core:Title text="Event Information" />
                 <Label text="{i18n>columnEvent}" />
-                <Text text="{view>eventNav/label}" />
+                <Text text="{view>eventText}" />
                 <Label text="{i18n>columnEventReason}" />
-                <Text text="{view>eventReasonNav/label}" />
+                <Text text="{view>eventReasonText}" />
                 <Label text="{i18n>columnStartDate}" />
                 <Text text="{path: 'view>startDate', type: 'sap.ui.model.type.Date', formatOptions: {style: 'long'}}" />
 
                 <core:Title text="Organization Details" />
                 <Label text="{i18n>labelCompany}" />
-                <Text text="{view>company}" />
+                <Text text="{view>companyText}" />
                 <Label text="{i18n>labelBusinessUnit}" />
-                <Text text="{view>businessUnit}" />
+                <Text text="{view>businessUnitText}" />
                 <Label text="{i18n>labelDivision}" />
-                <Text text="{view>division}" />
+                <Text text="{view>divisionText}" />
                 <Label text="{i18n>labelDepartment}" />
-                <Text text="{view>department}" />
+                <Text text="{view>departmentText}" />
                 <Label text="{i18n>labelLocation}" />
-                <Text text="{view>location}" />
+                <Text text="{view>locationText}" />
 
                 <core:Title text="Job Details" />
                 <Label text="{i18n>columnJobTitle}" />
-                <Text text="{view>jobTitle}" />
+                <Text text="{view>jobTitle} ({view>jobCode})" />
                 <Label text="{i18n>labelPosition}" />
-                <Text text="{view>position}" />
+                <Text text="{view>positionText}" />
                 <Label text="{i18n>labelGrade}" />
-                <Text text="{view>payGrade}" />
+                <Text text="{view>payGradeText}" />
                 <Label text="FTE" />
                 <Text text="{view>fte}" />
                 <Label text="Notes" />

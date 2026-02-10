@@ -19,6 +19,15 @@
                         <VBox width="12rem" height="1.5rem" class="skeleton" visible="{view>/busy}" />
                     </HBox>
                 </uxap:snappedHeading>
+                <uxap:actions>
+                    <Avatar 
+                        id="headerAvatar"
+                        src="{view>/photoUrl}" 
+                        displaySize="XS" 
+                        press=".onAvatarPress" 
+                        tooltip="{userInfo>/displayName}"
+                        displayShape="Circle" />
+                </uxap:actions>
             </uxap:ObjectPageDynamicHeaderTitle>
         </uxap:headerTitle>
 
@@ -125,10 +134,10 @@
                                         <ColumnListItem type="Navigation" press=".onJobHistoryPress">
                                             <cells>
                                                 <Text text="{path: 'view>startDate', type: 'sap.ui.model.type.Date', formatOptions: {style: 'medium'}}" />
-                                                <Text text="{view>eventNav/label}" />
-                                                <Text text="{view>eventReasonNav/label}" />
-                                                <Text text="{view>company}" />
-                                                <Text text="{view>department}" />
+                                                <Text text="{view>eventText}" />
+                                                <Text text="{view>eventReasonText}" />
+                                                <Text text="{view>companyText}" />
+                                                <Text text="{view>departmentText}" />
                                                 <Text text="{view>jobTitle}" />
                                                 <Text text="{view>payGrade}" />
                                             </cells>
