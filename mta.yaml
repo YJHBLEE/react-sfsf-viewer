@@ -33,30 +33,37 @@ modules:
         existing_destinations_policy: update
   build-parameters:
     no-source: true
+# ------------------------------------------------------------
+# 1. App Content Module (배포용 집합 모듈)
+# ------------------------------------------------------------
 - name: project1-app-content
   type: com.sap.application.content
-  path: .
+  path: .             # 주의: 아래 build-parameters 때문에 이 경로는 무시되고 Artifact만 수집합니다.
   requires:
   - name: project1-repo-host
     parameters:
       content-target: true
   build-parameters:
-    build-result: resources
+    build-result: resources    # [중요] 빌드 결과물이 모일 폴더 이름 명시 (스크린샷 참고)
     requires:
-    - artifacts:
-      - project1.zip
-      name: project1
-      target-path: resources/
+    - name: project1           # 아래 정의된 project1 모듈을 참조
+      artifacts:
+      - project1.zip           # project1 모듈이 만든 zip 파일을
+      target-path: resources/  # 결과물의 resources 폴더로 복사
+
+# ------------------------------------------------------------
+# 2. UI Source Module (실제 React 앱)
+# ------------------------------------------------------------
 - name: project1
   type: html5
   path: .
   build-parameters:
-    build-result: dist
+    build-result: dist         # Vite 빌드 후 zip이 생성되는 실제 위치
     builder: custom
     commands:
     - npm install
-    - npm run build:cf
-    supported-platforms: []
+    - npm run build
+    supported-platforms: []    # CF Node.js 앱으로 배포되지 않도록 방지
 resources:
 - name: project1-destination-service
   type: org.cloudfoundry.managed-service

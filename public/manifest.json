@@ -1,0 +1,23 @@
+{
+  "_version": "1.59.0",
+  "sap.app": {
+    "id": "project1",
+    "type": "application",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "SF Talent Viewer",
+    "description": "React based SF Talent Viewer"
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false
+  }
+}

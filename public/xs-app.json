@@ -1,0 +1,23 @@
+{
+  "welcomeFile": "/index.html",
+  "authenticationMethod": "route",
+  "routes": [
+    {
+      "source": "^/SuccessFactors_API/(.*)$",
+      "target": "$1",
+      "destination": "SuccessFactors_API",
+      "authenticationType": "xsuaa"
+    },
+    {
+      "source": "^/user-api/currentUser$",
+      "target": "/currentUser",
+      "service": "sap-approuter-userapi"
+    },
+    {
+      "source": "^(.*)$",
+      "target": "$1",
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "xsuaa"
+    }
+  ]
+}
