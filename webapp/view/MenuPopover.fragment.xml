@@ -1,0 +1,11 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Popover title="Menu" placement="Bottom" showHeader="true">
+        <List>
+            <StandardListItem title="Home" icon="sap-icon://home" type="Active" press=".onMenuHomePress" />
+            <StandardListItem title="Job History" icon="sap-icon://WorkTraits" type="Active" press=".onMenuJobHistoryPress" />
+            <StandardListItem title="Settings" icon="sap-icon://settings" type="Active" press=".onMenuSettingsPress" />
+        </List>
+    </Popover>
+</core:FragmentDefinition>

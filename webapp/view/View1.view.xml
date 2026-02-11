@@ -19,15 +19,6 @@
                         <VBox width="12rem" height="1.5rem" class="skeleton" visible="{view>/busy}" />
                     </HBox>
                 </uxap:snappedHeading>
-                <uxap:actions>
-                    <Avatar 
-                        id="headerAvatar"
-                        src="{view>/photoUrl}" 
-                        displaySize="XS" 
-                        press=".onAvatarPress" 
-                        tooltip="{userInfo>/displayName}"
-                        displayShape="Circle" />
-                </uxap:actions>
             </uxap:ObjectPageDynamicHeaderTitle>
         </uxap:headerTitle>
 

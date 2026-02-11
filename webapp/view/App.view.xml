@@ -10,19 +10,24 @@
                     <Button id="sideNavigationToggleButton"
                         icon="sap-icon://menu2"
                         type="Transparent"
-                        press=".onSideNavButtonPress" />
+                        press=".onMenuButtonPress" />
                     <Title text="{i18n>appTitle}" level="H1" />
+                    <ToolbarSpacer />
+                    <Button 
+                        id="themeToggleButton"
+                        icon="sap-icon://palette" 
+                        type="Transparent"
+                        press=".onThemeToggle" 
+                        tooltip="Toggle Light/Dark Mode" />
+                    <Avatar 
+                        id="headerAvatar"
+                        src="{view>/photoUrl}" 
+                        displaySize="XS" 
+                        press=".onAvatarPress" 
+                        displayShape="Circle"
+                        class="sapUiTinyMarginBegin" />
                 </tnt:ToolHeader>
             </tnt:header>
-            <tnt:sideContent>
-                <tnt:SideNavigation>
-                    <tnt:NavigationList>
-                        <tnt:NavigationListItem text="{i18n>menuPeopleProfile}" icon="sap-icon://employee" />
-                        <tnt:NavigationListItem text="{i18n>menuMassJobUpdate}" icon="sap-icon://multi-select" />
-                        <tnt:NavigationListItem text="{i18n>menuPerformanceReview}" icon="sap-icon://past" />
-                    </tnt:NavigationList>
-                </tnt:SideNavigation>
-            </tnt:sideContent>
             <tnt:mainContents>
                 <App id="app" class="appContainer" />
             </tnt:mainContents>

@@ -58,6 +58,9 @@
   },
   "sap.ui5": {
     "flexEnabled": true,
+    "config": {
+      "theme": "sap_horizon"
+    },
     "dependencies": {
       "minUI5Version": "1.144.0",
       "libs": {

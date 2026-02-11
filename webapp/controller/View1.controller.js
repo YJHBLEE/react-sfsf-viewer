@@ -22,7 +22,6 @@ sap.ui.define([
                 const sUserId = oUserModel.getProperty("/name");
                 this._loadSFData(sUserId || "sfadmin");
             }).catch(() => {
-                // 로컬 테스트 환경 등을 위한 Fallback
                 this._loadSFData("sfadmin");
             });
         },
@@ -36,7 +35,9 @@ sap.ui.define([
             const sPath = `/User('${sUserId}')`;
             const sPhotoPath = `/Photo(photoType=1,userId='${sUserId}')`;
             const sJobHistoryPath = "/EmpJob";
-            const oUserParams = {};
+
+            // 현재 언어 설정 가져오기 (예: ko-KR -> ko_KR)
+            const sLocale = sap.ui.getCore().getConfiguration().getLanguage().replace("-", "_");
 
             const oJobHistoryParams = {
                 "$filter": `userId eq '${sUserId}'`,
@@ -44,9 +45,9 @@ sap.ui.define([
                 "$select": "userId,startDate,seqNumber,event,eventReason,company,department,jobTitle,payGrade,fte,notes,jobCode,businessUnit,division,location,position," +
                            "eventNav/id,eventNav/picklistLabels/label,eventNav/picklistLabels/locale," +
                            "eventReasonNav/externalCode,eventReasonNav/nameTranslationNav," +
-                           "companyNav/name,companyNav/name_localized,companyNav/name_en_US," +
-                           "departmentNav/name,departmentNav/name_localized,departmentNav/name_en_US," +
-                           "positionNav/externalName_localized,positionNav/externalName_en_US,positionNav/externalName_defaultValue," +
+                           `companyNav/name,companyNav/name_localized,companyNav/name_${sLocale},` +
+                           `departmentNav/name,departmentNav/name_localized,departmentNav/name_${sLocale},` +
+                           `positionNav/externalName_localized,positionNav/externalName_${sLocale},positionNav/externalName_defaultValue,` +
                            "businessUnitNav/name,divisionNav/name,locationNav/name,payGradeNav/name," +
                            "managerUserNav/displayName",
                 "$orderby": "startDate desc",
@@ -65,7 +66,7 @@ sap.ui.define([
 
             // 모든 데이터 로드 대기
             Promise.all([
-                fnReadPromise(sPath, oUserParams),
+                fnReadPromise(sPath),
                 fnReadPromise(sPhotoPath),
                 fnReadPromise(sJobHistoryPath, oJobHistoryParams)
             ]).then(([oUserData, oPhotoData, oJobHistory]) => {
@@ -151,26 +152,6 @@ sap.ui.define([
             // 2. Fallback: 번역 데이터가 없을 경우 기본 name 또는 description 사용
             const sName = oNav.name || oNav.description || sCode;
             return sName ? `${sName} (${sCode})` : sCode;
-        },
-
-        onAvatarPress(oEvent) {
-            const oAvatar = oEvent.getSource();
-            const oView = this.getView();
-
-            if (!this._pUserInfoPopover) {
-                this._pUserInfoPopover = Fragment.load({
-                    id: oView.getId(),
-                    name: "project1.view.UserInfoPopover",
-                    controller: this
-                }).then((oPopover) => {
-                    oView.addDependent(oPopover);
-                    return oPopover;
-                });
-            }
-
-            this._pUserInfoPopover.then((oPopover) => {
-                oPopover.openBy(oAvatar);
-            });
         },
 
         onJobHistoryPress(oEvent) {
