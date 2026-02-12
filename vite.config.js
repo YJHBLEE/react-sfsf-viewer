@@ -9,7 +9,7 @@ export default defineConfig({
       '/SuccessFactors_API': {
         target: 'https://apisalesdemo8.successfactors.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/SuccessFactors_API/, '/odata/v2'),
+        rewrite: (path) => path.replace(/^\/SuccessFactors_API/, '/'),
         headers: {
            Authorization: 'Basic ' + btoa('sfadmin@SFHUB003119:go100@45')
          }
