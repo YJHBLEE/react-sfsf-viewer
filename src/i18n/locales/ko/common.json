@@ -1,0 +1,78 @@
+{
+    "nav": {
+        "dashboard": "대시보드",
+        "myProfile": "내 프로필",
+        "performance": "성과 관리",
+        "learning": "교육 관리",
+        "documents": "내 문서함",
+        "preferences": "환경 설정",
+        "adminConsole": "관리자 콘솔",
+        "workspace": "워크스페이스",
+        "language": "언어 변경",
+        "settings": "개인 설정",
+        "logout": "로그아웃"
+    },
+    "header": {
+        "searchPlaceholder": "사람, 메뉴, 평가서 검색...",
+        "employees": "임직원 정보"
+    },
+    "profile": {
+        "orgChart": "조직도 보기",
+        "actions": "작업",
+        "tabs": {
+            "overview": "개요",
+            "jobhistory": "인사 이력",
+            "compensation": "보상 정보",
+            "documents": "첨부 문서"
+        },
+        "contactInfo": "연락처 정보",
+        "skills": "보유 역량",
+        "notRegistered": "등록되지 않음"
+    },
+    "activity": {
+        "pendingActions": "승인 대기 중인 항목",
+        "pendingMessage": "{{count}}개의 성과 목표가 승인 대기 중입니다.",
+        "recentJob": "최근 인사 활동",
+        "viewAll": "전체 보기",
+        "review": "검토하기"
+    },
+    "pm": {
+        "inboxTitle": "평가 Inbox",
+        "todoTitle": "처리할 평가서",
+        "noForms": "처리할 평가서가 없습니다.",
+        "categories": {
+            "all": "전체",
+            "performance": "성과평가",
+            "leadership": "임원평가",
+            "peer": "동료평가",
+            "probation": "수습평가"
+        },
+        "card": {
+            "dueDate": "마감일: {{date}}",
+            "currentStep": "현재 단계: {{step}}",
+            "openForm": "평가서 열기"
+        },
+        "sections": {
+            "objectives": "성과 목표 (Objectives)",
+            "competencies": "핵심 역량 (Competencies)",
+            "summary": "종합 의견 (Summary)",
+            "introduction": "평가 안내 (Introduction)"
+        },
+        "fields": {
+            "name": "항목명",
+            "description": "세부 내용",
+            "weight": "비중",
+            "rating": "점수",
+            "comment": "코멘트",
+            "self": "본인",
+            "manager": "평가자"
+        }
+    },
+    "common": {
+        "loading": "데이터 로딩 중...",
+        "errorTitle": "연결 오류",
+        "errorMessage": "SuccessFactors API에 연결할 수 없습니다. 설정을 확인해 주세요.",
+        "guest": "게스트",
+        "systemUser": "시스템 사용자"
+    }
+}

@@ -1,0 +1,78 @@
+{
+    "nav": {
+        "dashboard": "ダッシュボード",
+        "myProfile": "マイプロフィール",
+        "performance": "パフォーマンス",
+        "learning": "ラーニング",
+        "documents": "マイドキュメント",
+        "preferences": "環境設定",
+        "adminConsole": "管理者コンソール",
+        "workspace": "ワークスペース",
+        "language": "言語変更",
+        "settings": "個人設定",
+        "logout": "ログアウト"
+    },
+    "header": {
+        "searchPlaceholder": "人、メニュー、評価書を検索...",
+        "employees": "従業員情報"
+    },
+    "profile": {
+        "orgChart": "組織図を表示",
+        "actions": "アクション",
+        "tabs": {
+            "overview": "概要",
+            "jobhistory": "職歴",
+            "compensation": "報酬情報",
+            "documents": "ドキュメント"
+        },
+        "contactInfo": "連絡先情報",
+        "skills": "スキル",
+        "notRegistered": "未登録"
+    },
+    "activity": {
+        "pendingActions": "承認待機中",
+        "pendingMessage": "{{count}}件のパフォーマンス目標が承認待ちです。",
+        "recentJob": "直近の履歴",
+        "viewAll": "すべて表示",
+        "review": "確認"
+    },
+    "pm": {
+        "inboxTitle": "評価 Inbox",
+        "todoTitle": "処理すべき評価書",
+        "noForms": "処理すべき評価書がありません。",
+        "categories": {
+            "all": "全体",
+            "performance": "成果評価",
+            "leadership": "役員評価",
+            "peer": "同僚評価",
+            "probation": "試用期間評価"
+        },
+        "card": {
+            "dueDate": "締切日: {{date}}",
+            "currentStep": "現在の段階: {{step}}",
+            "openForm": "評価書を開く"
+        },
+        "sections": {
+            "objectives": "目標 (Objectives)",
+            "competencies": "コンピテンシー (Competencies)",
+            "summary": "総合意見 (Summary)",
+            "introduction": "評価案内 (Introduction)"
+        },
+        "fields": {
+            "name": "項目名",
+            "description": "詳細内容",
+            "weight": "比重",
+            "rating": "点数",
+            "comment": "コメント",
+            "self": "本人",
+            "manager": "評価者"
+        }
+    },
+    "common": {
+        "loading": "読み込み中...",
+        "errorTitle": "接続エラー",
+        "errorMessage": "SuccessFactors API에 연결할 수 없습니다。설정을 확인해 주세요。",
+        "guest": "ゲスト",
+        "systemUser": "システムユーザー"
+    }
+}

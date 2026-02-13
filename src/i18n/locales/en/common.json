@@ -1,0 +1,78 @@
+{
+    "nav": {
+        "dashboard": "Dashboard",
+        "myProfile": "My Profile",
+        "performance": "Performance",
+        "learning": "Learning",
+        "documents": "Documents",
+        "preferences": "Preferences",
+        "adminConsole": "Admin Console",
+        "workspace": "Workspace",
+        "language": "Change Language",
+        "settings": "Settings",
+        "logout": "Logout"
+    },
+    "header": {
+        "searchPlaceholder": "Search people, menu, evaluation...",
+        "employees": "Employees"
+    },
+    "profile": {
+        "orgChart": "View Org Chart",
+        "actions": "Actions",
+        "tabs": {
+            "overview": "Overview",
+            "jobhistory": "Job History",
+            "compensation": "Compensation",
+            "documents": "Documents"
+        },
+        "contactInfo": "Contact Information",
+        "skills": "Skills",
+        "notRegistered": "Not Registered"
+    },
+    "activity": {
+        "pendingActions": "Pending Actions",
+        "pendingMessage": "{{count}} performance goals are waiting for approval.",
+        "recentJob": "Recent Job Activity",
+        "viewAll": "View All",
+        "review": "Review"
+    },
+    "pm": {
+        "inboxTitle": "Performance Inbox",
+        "todoTitle": "To-do List",
+        "noForms": "No evaluation forms found.",
+        "categories": {
+            "all": "All",
+            "performance": "Performance",
+            "leadership": "Leadership",
+            "peer": "Peer Review",
+            "probation": "Probation"
+        },
+        "card": {
+            "dueDate": "Due Date: {{date}}",
+            "currentStep": "Current Step: {{step}}",
+            "openForm": "Open Form"
+        },
+        "sections": {
+            "objectives": "Objectives",
+            "competencies": "Competencies",
+            "summary": "Summary",
+            "introduction": "Introduction"
+        },
+        "fields": {
+            "name": "Item Name",
+            "description": "Description",
+            "weight": "Weight",
+            "rating": "Rating",
+            "comment": "Comment",
+            "self": "Self",
+            "manager": "Manager"
+        }
+    },
+    "common": {
+        "loading": "Loading SuccessFactors Data...",
+        "errorTitle": "Connection Error",
+        "errorMessage": "Unable to connect to SuccessFactors API. Please check your destination settings.",
+        "guest": "Guest",
+        "systemUser": "System User"
+    }
+}
