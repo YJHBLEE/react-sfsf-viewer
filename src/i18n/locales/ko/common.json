@@ -73,6 +73,11 @@
         "errorTitle": "연결 오류",
         "errorMessage": "SuccessFactors API에 연결할 수 없습니다. 설정을 확인해 주세요.",
         "guest": "게스트",
-        "systemUser": "시스템 사용자"
+        "systemUser": "시스템 사용자",
+        "save": "임시 저장",
+        "submit": "최종 제출",
+        "back": "뒤로 가기",
+        "saveSuccess": "성공적으로 저장되었습니다.",
+        "saveError": "저장 중 오류가 발생했습니다."
     }
 }

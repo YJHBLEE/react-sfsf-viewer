@@ -73,6 +73,11 @@
         "errorTitle": "Connection Error",
         "errorMessage": "Unable to connect to SuccessFactors API. Please check your destination settings.",
         "guest": "Guest",
-        "systemUser": "System User"
+        "systemUser": "System User",
+        "save": "Save",
+        "submit": "Submit",
+        "back": "Back",
+        "saveSuccess": "Saved successfully.",
+        "saveError": "An error occurred while saving."
     }
 }

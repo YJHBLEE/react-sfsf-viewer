@@ -150,19 +150,67 @@ export const sfService = {
     },
 
     /**
-     * 8. 평가서 상세 데이터 조회 (Deep Load)
+     * 8. 평가서 상세 데이터 조회 (Optimized 2-Step Loading)
      */
-    getFormDetail: async (formContentId, formDataId) => {
+    async getFormDetail(formContentId, formDataId) {
         try {
-            // 복합 키를 사용하여 FormContent 조회 (L 접미사 포함)
-            const response = await api.get(`SuccessFactors_API/odata/v2/FormContent(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
-                params: {
-                    $expand: 'formHeader,pmReviewContentDetail/objectiveSections/objectives/selfRatingComment,pmReviewContentDetail/competencySections/competencies/selfRatingComment,pmReviewContentDetail/summarySection/selfRatingComment,pmReviewContentDetail/summarySection/overallFormRating,pmReviewContentDetail/introductionSection',
-                }
+            // STEP 1: 기본 정보(Header)만 가볍게 조회
+            const baseResponse = await api.get(`SuccessFactors_API/odata/v2/FormContent(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
+                params: { $expand: 'formHeader' }
             });
-            return response.data.d;
+            const formObj = baseResponse.data.d;
+
+            // STEP 2: 상세 내용 엔티티가 존재하는지 확인 후 개별 조회 (타겟팅 조회)
+            try {
+                const detailResponse = await api.get(`SuccessFactors_API/odata/v2/FormPMReviewContentDetail(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
+                    params: {
+                        $expand: 'objectiveSections/objectives/selfRatingComment,competencySections/competencies/selfRatingComment,summarySection/selfRatingComment,summarySection/overallFormRating,introductionSection,customSections'
+                    }
+                });
+
+                // 조회된 상세 데이터를 기본 객체에 병합 (기존 UI 호환을 위해 배열 results 형태로 가공)
+                formObj.pmReviewContentDetail = {
+                    results: [detailResponse.data.d]
+                };
+            } catch (detailErr) {
+                console.warn(`[PM Detail] This form template might not support targeting FormPMReviewContentDetail directly.`, detailErr.message);
+            }
+
+            return formObj;
         } catch (error) {
             console.error(`Failed to get form detail for ${formContentId}:`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * 8-1. 360 다면평가 상세 데이터 조회 (Optimized 2-Step Loading)
+     */
+    async getForm360Detail(formContentId, formDataId) {
+        try {
+            // STEP 1: 기본 정보 조회
+            const baseResponse = await api.get(`SuccessFactors_API/odata/v2/FormContent(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
+                params: { $expand: 'formHeader' }
+            });
+            const formObj = baseResponse.data.d;
+
+            // STEP 2: 360 전용 상세 엔티티 조회 (타겟팅 조회)
+            try {
+                const detailResponse = await api.get(`SuccessFactors_API/odata/v2/Form360ReviewContentDetail(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
+                    params: {
+                        $expand: 'summarySection/selfRatingComment,summarySection/overallFormRating,competencySections/competencies/selfRatingComment,objectiveSections/objectives/selfRatingComment,introductionSection,participantSection,form360RaterSection/form360Raters,summaryViewSection/formRaters,summaryViewSection/categoryWeights,userInformationSection,customSections/customItems/selfRatingComment',
+                    }
+                });
+
+                // 360 상세 데이터를 기본 객체의 속성으로 병합
+                Object.assign(formObj, detailResponse.data.d);
+            } catch (detailErr) {
+                console.warn(`[360 Detail] This form template might not support targeting Form360ReviewContentDetail directly.`, detailErr.message);
+            }
+
+            return formObj;
+        } catch (error) {
+            console.error(`Failed to get 360 form detail for ${formContentId}:`, error);
             throw error;
         }
     },
