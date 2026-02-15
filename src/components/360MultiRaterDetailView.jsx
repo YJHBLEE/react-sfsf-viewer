@@ -8,11 +8,11 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ChevronLeft, Target, Award, MessageSquare, Info,
-    Clock, FileText, ChevronRight, CheckCircle2,
-    ChevronUp, ChevronDown, Users, BarChart3, Star,
+    Clock, FileText, ChevronRight, Users, BarChart3, Star,
     User, Brain, Zap, TrendingUp, Save, Send
 } from 'lucide-react';
 import { sfService } from '../services/sfService';
+import RouteMapStepView from './RouteMapStepView';
 
 const _360MultiRaterDetailView = ({ form, onBack }) => {
     const { t } = useTranslation();
@@ -23,7 +23,7 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
     const [activeSectionId, setActiveSectionId] = useState(null);
     const [inputs, setInputs] = useState({});
     const [isSaving, setIsSaving] = useState(false);
-    const [isRouteMapExpanded, setIsRouteMapExpanded] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         const fetchDetail = async () => {
@@ -87,9 +87,22 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
                     });
                 });
 
-                // 4. 역량 섹션 (컬렉션 처리)
-                const compSections = content.competencySections?.results || [];
-                compSections.forEach((sec, sidx) => {
+                // 4. 역량 및 스킬 섹션 통합 처리 (attributeType 'COMPETENCY', 'SKILL' 활용)
+                const rawCompSections = content.competencySections?.results || [];
+                const rawCustomSections = content.customSections?.results || [];
+
+                // SKILL 섹션을 추출하여 Competency 구조로 변환
+                const extractedSkills = rawCustomSections
+                    .filter(sec => sec.attributeType === 'SKILL')
+                    .map(sec => ({
+                        ...sec,
+                        competencies: { results: sec.customItems?.results || [] }
+                    }));
+
+                // 기존 COMPETENCY 섹션과 추출된 SKILL 섹션 병합
+                const mergedCompSections = [...rawCompSections, ...extractedSkills];
+
+                mergedCompSections.forEach((sec, sidx) => {
                     const sId = `comp_${sidx}`;
                     dynamicSections.push({
                         id: sId,
@@ -110,14 +123,15 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
                     });
                 });
 
-                // 5. 커스텀 섹션 (Skills, Strengths, Development 등)
-                const customSections = content.customSections?.results || [];
-                customSections.forEach((sec, idx) => {
+                // 5. 기타 커스텀 섹션 (STRENGTH, DEVELOPMENT 등 - SKILL은 이미 위에서 처리)
+                const remainingCustomSections = rawCustomSections.filter(sec => sec.attributeType !== 'SKILL');
+
+                remainingCustomSections.forEach((sec, idx) => {
                     let icon = Brain;
-                    const sName = sec.sectionName?.toLowerCase() || '';
-                    if (sName.includes('strength')) icon = Zap;
-                    if (sName.includes('development')) icon = TrendingUp;
-                    if (sName.includes('skill')) icon = Award;
+                    const attrType = sec.attributeType;
+
+                    if (attrType === 'STRENGTH') icon = Zap;
+                    if (attrType === 'DEVELOPMENT') icon = TrendingUp;
 
                     const sId = `custom_${idx}`;
                     dynamicSections.push({
@@ -128,7 +142,7 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
                         icon: icon
                     });
 
-                    // 개별 항목(Skill 등)이 있는 경우 초기값 설정
+                    // 개별 항목 초기값 설정
                     sec.customItems?.results?.forEach((item) => {
                         const key = `${sId}_${item.itemId}`;
                         initialInputs[key] = {
@@ -209,6 +223,34 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
         alert('360 평가 저장 기능은 준비 중입니다.');
     };
 
+    const handleSubmit = async () => {
+        if (!window.confirm(t('common.confirmSubmit360'))) {
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            // 360 저장 기능이 구현되면 여기에 await handleSave() 추가 예정
+
+            const result = await sfService.complete360(form.formDataId);
+
+            // 성공 여부 확인
+            if (result === 'Success' || result?.status === 'Success' || result?.d?.status === 'Success') {
+                alert(t('common.submitSuccess'));
+                onBack();
+            } else {
+                throw new Error(result?.status || 'Unknown error');
+            }
+        } catch (error) {
+            console.error('Failed to complete 360 form', error);
+            const errorData = error.response?.data?.error;
+            const errorMessage = errorData?.message?.value || error.message;
+            alert(`${t('common.submitError')}\n\n[${errorData?.code || 'ERROR'}] ${errorMessage}`);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const cleanHtml = (html) => {
         if (!html) return '';
         return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ');
@@ -248,10 +290,18 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
                         </span>
                     </button>
                     <button
-                        className="group px-6 py-2.5 bg-purple-600 text-white rounded-2xl flex items-center gap-2 hover:bg-purple-700 transition-all shadow-lg shadow-purple-100 hover:scale-[1.02] border border-purple-500"
+                        onClick={handleSubmit}
+                        disabled={isSubmitting || isSaving}
+                        className="group px-6 py-2.5 bg-purple-600 text-white rounded-2xl flex items-center gap-2 hover:bg-purple-700 transition-all shadow-lg shadow-purple-100 hover:scale-[1.02] border border-purple-500 disabled:opacity-50"
                     >
-                        <Send size={16} />
-                        <span className="text-xs font-black uppercase tracking-tight">{t('common.submit')}</span>
+                        {isSubmitting ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        ) : (
+                            <Send size={16} />
+                        )}
+                        <span className="text-xs font-black uppercase tracking-tight">
+                            {isSubmitting ? t('common.submitting') : t('common.submit')}
+                        </span>
                     </button>
                 </div>
             </div>
@@ -275,52 +325,8 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
                     </div>
                 </div>
 
-                {/* Route Map */}
-                <div className="mt-8 pt-8 border-t border-slate-100">
-                    <div
-                        className="flex items-center justify-between cursor-pointer group"
-                        onClick={() => setIsRouteMapExpanded(!isRouteMapExpanded)}
-                    >
-                        <div className="flex items-center gap-3">
-                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Process Timeline</h3>
-                        </div>
-                        <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-purple-50 group-hover:text-purple-600 transition-all">
-                            {isRouteMapExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                        </div>
-                    </div>
-
-                    {isRouteMapExpanded && routeMap?.routeStep?.results && (
-                        <div className="relative mt-8 animate-in slide-in-from-top-4 duration-500">
-                            <div className="flex flex-col md:flex-row justify-between relative gap-8 md:gap-4 overflow-x-auto pb-4 no-scrollbar">
-                                {routeMap.routeStep.results.map((step, idx) => {
-                                    const isCurrent = step.current;
-                                    const isCompleted = step.completed;
-                                    const subStep = step.routeSubStep?.results?.[0];
-                                    const processorName = step.userFullName || subStep?.userFullName || step.userRole || subStep?.userRole || (isCompleted ? 'Completed' : 'TBD');
-
-                                    return (
-                                        <div key={idx} className="flex flex-col items-center text-center min-w-[140px] md:min-w-0 group">
-                                            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center text-xs font-black mb-4 transition-all duration-300 relative ${isCurrent
-                                                ? 'bg-purple-600 text-white shadow-2xl shadow-purple-200 scale-110 border-4 border-white ring-2 ring-purple-600'
-                                                : (isCompleted ? 'bg-white text-purple-600 border border-purple-100 shadow-sm' : 'bg-white border border-slate-100 text-slate-300')
-                                                }`}>
-                                                {isCompleted ? <CheckCircle2 size={18} className="text-purple-500" /> : idx + 1}
-                                            </div>
-                                            <div className="space-y-1.5 px-2">
-                                                <p className={`text-[11px] font-black leading-tight break-keep max-w-[120px] mx-auto ${isCurrent ? 'text-purple-600' : (isCompleted ? 'text-slate-800 font-bold' : 'text-slate-400')}`}>
-                                                    {step.stepName}
-                                                </p>
-                                                <div className="text-[9px] font-bold text-slate-400">
-                                                    {processorName}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                {/* Route Map (모듈화 완료) */}
+                <RouteMapStepView routeMap={routeMap} color="purple" title="Process Timeline" />
             </div>
 
             {/* 레이아웃 메인 */}
@@ -390,9 +396,10 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
                                 <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center"><Info size={20} /></div>
                                 {activeSection.title}
                             </h3>
-                            <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium">
-                                {cleanHtml(activeSection.data.sectionDescription)}
-                            </div>
+                            <div
+                                className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium [&_p]:mb-2 [&_ul]:list-disc [&_ul]:ml-5 [&_ol]:list-decimal [&_ol]:ml-5"
+                                dangerouslySetInnerHTML={{ __html: activeSection.data.sectionDescription }}
+                            />
                         </div>
                     )}
 
@@ -409,9 +416,10 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
                                                         <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-sm">{idx + 1}</div>
                                                         <h4 className="text-lg font-black text-slate-900 group-hover:text-indigo-700">{obj.name}</h4>
                                                     </div>
-                                                    <div className="text-xs text-slate-500 font-medium leading-relaxed bg-slate-50/50 p-4 rounded-2xl border border-slate-100 italic">
-                                                        {cleanHtml(obj.metric)}
-                                                    </div>
+                                                    <div
+                                                        className="text-xs text-slate-500 font-medium leading-relaxed bg-slate-50/50 p-4 rounded-2xl border border-slate-100 italic [&_p]:mb-1 [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
+                                                        dangerouslySetInnerHTML={{ __html: obj.metric }}
+                                                    />
                                                 </div>
                                                 <div className="bg-indigo-50 p-4 rounded-3xl border border-indigo-100 min-w-[140px]">
                                                     <p className="text-[10px] text-indigo-400 font-black uppercase mb-3 tracking-widest text-center">Your Rating</p>
@@ -447,6 +455,15 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
                     {activeSection?.type === 'competency' && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                             <h3 className="text-xl font-black text-slate-800 px-2">{activeSection.data.sectionName}</h3>
+
+                            {/* 섹션 설명 (Introduction) 추가 - HTML 태그 적용 */}
+                            {activeSection.data.sectionDescription && (
+                                <div
+                                    className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium mx-2 mb-4 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:ml-5 [&_ol]:list-decimal [&_ol]:ml-5"
+                                    dangerouslySetInnerHTML={{ __html: activeSection.data.sectionDescription }}
+                                />
+                            )}
+
                             <div className="grid grid-cols-1 gap-6">
                                 {activeSection.data.competencies?.results?.map((comp, idx) => (
                                     <div key={idx} className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm hover:border-purple-200 transition-all group">
@@ -457,7 +474,10 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
                                                         <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-black text-sm">{idx + 1}</div>
                                                         <h4 className="text-lg font-black text-slate-900 group-hover:text-purple-700">{comp.name}</h4>
                                                     </div>
-                                                    <p className="text-xs text-slate-500 font-medium leading-relaxed pl-1 max-w-2xl">{comp.description}</p>
+                                                    <div
+                                                        className="text-xs text-slate-500 font-medium leading-relaxed pl-1 max-w-2xl [&_p]:mb-1 [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
+                                                        dangerouslySetInnerHTML={{ __html: comp.description }}
+                                                    />
                                                 </div>
                                                 <div className="bg-purple-50 p-4 rounded-3xl border border-purple-100 min-w-[140px]">
                                                     <p className="text-[10px] text-purple-400 font-black uppercase mb-3 tracking-widest text-center">Your Rating</p>
@@ -496,16 +516,17 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
                                 <h3 className="text-xl font-black text-slate-800">{activeSection.data.sectionName}</h3>
                             </div>
 
-                            {/* 섹션 설명 (있는 경우) */}
+                            {/* 섹션 설명 (Introduction) 추가 - HTML 태그 적용 */}
                             {activeSection.data.sectionDescription && (
-                                <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 text-sm text-slate-600 font-medium leading-relaxed mx-2">
-                                    {cleanHtml(activeSection.data.sectionDescription)}
-                                </div>
+                                <div
+                                    className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 text-sm text-slate-600 font-medium leading-relaxed mx-2 mb-4 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:ml-5 [&_ol]:list-decimal [&_ol]:ml-5"
+                                    dangerouslySetInnerHTML={{ __html: activeSection.data.sectionDescription }}
+                                />
                             )}
 
                             <div className="grid grid-cols-1 gap-6">
                                 {activeSection.data.customItems?.results?.length > 0 ? (
-                                    // 개별 항목(Skill 등)이 있는 경우
+                                    // 개별 항목(Strength, Development 등)이 있는 경우
                                     activeSection.data.customItems.results.map((item, idx) => (
                                         <div key={idx} className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm hover:border-indigo-200 transition-all group">
                                             <div className="flex flex-col space-y-6">
@@ -516,7 +537,10 @@ const _360MultiRaterDetailView = ({ form, onBack }) => {
                                                             <h4 className="text-lg font-black text-slate-900 group-hover:text-indigo-700">{item.name}</h4>
                                                         </div>
                                                         {item.description && (
-                                                            <p className="text-xs text-slate-500 font-medium leading-relaxed pl-1">{cleanHtml(item.description)}</p>
+                                                            <div
+                                                                className="text-xs text-slate-500 font-medium leading-relaxed pl-1 [&_p]:mb-1 [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
+                                                                dangerouslySetInnerHTML={{ __html: item.description }}
+                                                            />
                                                         )}
                                                     </div>
                                                     <div className="bg-indigo-50/50 p-4 rounded-3xl border border-indigo-100 min-w-[140px] ml-4">

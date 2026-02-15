@@ -78,6 +78,12 @@
         "submit": "Submit",
         "back": "Back",
         "saveSuccess": "Saved successfully.",
-        "saveError": "An error occurred while saving."
+        "saveError": "An error occurred while saving.",
+        "confirmSubmit": "Are you sure you want to submit this form? Changes may not be possible after submission.",
+        "confirmSubmit360": "Are you sure you want to complete this 360 review? Changes will not be possible.",
+        "submitSuccess": "The form has been submitted successfully.",
+        "submitError": "An error occurred while submitting the form.",
+        "saving": "Saving...",
+        "submitting": "Submitting..."
     }
 }

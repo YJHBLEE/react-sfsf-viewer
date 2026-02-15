@@ -1,0 +1,22 @@
+{
+    "welcomeFile": "index.html",
+    "routes": [
+        {
+            "source": "^/SuccessFactors_API/(.*)$",
+            "target": "$1",
+            "destination": "SuccessFactors_API",
+            "authenticationType": "xsuaa",
+            "csrfProtection": false
+        },
+        {
+            "source": "^/user-api/(.*)$",
+            "target": "$1",
+            "service": "sap-approuter-userapi"
+        },
+        {
+            "source": "^/(.*)$",
+            "target": "$1",
+            "localDir": "dist"
+        }
+    ]
+}

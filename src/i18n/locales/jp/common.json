@@ -73,6 +73,17 @@
         "errorTitle": "接続エラー",
         "errorMessage": "SuccessFactors API에 연결할 수 없습니다。설정을 확인해 주세요。",
         "guest": "ゲスト",
-        "systemUser": "システムユーザー"
+        "systemUser": "システムユーザー",
+        "save": "保存",
+        "submit": "提出",
+        "back": "戻る",
+        "saveSuccess": "保存されました。",
+        "saveError": "保存中にエラーが発生しました。",
+        "confirmSubmit": "この評価書を提出してもよ러しいですか？提出後は変更できない場合があります。",
+        "confirmSubmit360": "この360度評価を完了してもよろしいですか？完了後は変更できません。",
+        "submitSuccess": "評価書が正常に提出されました。",
+        "submitError": "評価書の提出中にエラーが発生しました。",
+        "saving": "保存中...",
+        "submitting": "提出中..."
     }
 }

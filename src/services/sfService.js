@@ -1,26 +1,144 @@
 /**
  * Project: react-sfsf-viewer
  * File: /src/services/sfService.js
- * Description: SuccessFactors OData API 호출을 관리하는 서비스 모듈
+ * Description: SuccessFactors OData API 호출을 관리하는 서비스 모듈 (CSRF & Session 최적화 버전)
  */
 
 import axios from 'axios';
 
-// API 인스턴스 설정 (BTP 환경의 상대 경로 대응을 위해 baseURL을 빈 값으로 설정)
+// --- 토큰 및 세션 관리를 위한 전역 변수 ---
+let cachedCsrfToken = null;
+let isFetchingToken = false;
+
+// API 인스턴스 설정
 const api = axios.create({
     baseURL: '',
+    withCredentials: true, // 쿠키 및 세션 유지를 위해 필수
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
+/**
+ * [Interceptors] Request: 토큰 자동 주입 및 Proactive Fetching
+ */
+api.interceptors.request.use(
+    (config) => {
+        const method = config.method?.toUpperCase();
+
+        // 1. 모든 GET 요청 시 토큰 획득 시도 (Proactive Fetching)
+        if (method === 'GET') {
+            config.headers['x-csrf-token'] = 'fetch';
+        }
+
+        // 2. 쓰기 요청 시 캐싱된 토큰 주입
+        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+            if (cachedCsrfToken) {
+                config.headers['x-csrf-token'] = cachedCsrfToken;
+            } else {
+                config.headers['x-csrf-token'] = 'fetch';
+            }
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+/**
+ * [Interceptors] Response: 토큰 자동 캡처 및 403 에러 발생 시 재시도
+ */
+api.interceptors.response.use(
+    (response) => {
+        // 응답 헤더에서 토큰 캡처
+        const token = response.headers['x-csrf-token'] || response.headers['X-CSRF-Token'];
+        if (token && !['required', 'fetch', 'none'].includes(token.toLowerCase())) {
+            cachedCsrfToken = token;
+        }
+        return response;
+    },
+    async (error) => {
+        const originalRequest = error.config;
+
+        // CSRF 토큰 만료(403) 시 자동 갱신 및 재시도 로직
+        if (error.response?.status === 403 && !originalRequest._retry) {
+            const tokenMsg = error.response.headers?.['x-csrf-token'];
+            if (tokenMsg?.toLowerCase() === 'required' || error.response.data?.error?.message?.value?.includes('CSRF')) {
+                originalRequest._retry = true;
+                cachedCsrfToken = null;
+
+                // 토큰 재취득 (새로운 세션 쿠키와 토큰 확보)
+                const newToken = await fetchCsrfToken();
+                if (newToken) {
+                    originalRequest.headers['x-csrf-token'] = newToken;
+                    // 원래 요청 재수행
+                    return api(originalRequest);
+                }
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
+/**
+ * CSRF 토큰 획득 함수 (Proactive & Reactive Hybrid)
+ */
+const fetchCsrfToken = async () => {
+    if (cachedCsrfToken) return cachedCsrfToken;
+
+    // 중복 호출 방지 (Lock)
+    if (isFetchingToken) {
+        let retries = 0;
+        while (isFetchingToken && retries < 50) {
+            await new Promise(r => setTimeout(r, 100));
+            retries++;
+        }
+        return cachedCsrfToken;
+    }
+
+    try {
+        isFetchingToken = true;
+        // 가장 빠른 응답을 주는 API로 토큰과 쿠키 획득
+        await api.get('SuccessFactors_API/odata/v2/$metadata');
+        return cachedCsrfToken;
+    } catch (error) {
+        console.error('[sfService] Fails to fetch CSRF token:', error);
+        return null;
+    } finally {
+        isFetchingToken = false;
+    }
+};
+
 export const sfService = {
     /**
-     * 1. 현재 로그인한 사용자 정보 가져오기 (AppRouter user-api)
+     * 1. 현재 로그인한 사용자 정보 가져오기
      */
     getCurrentUser: async () => {
         try {
             const response = await api.get('user-api/currentUser');
+            const username = response.data.name;
+
+            if (!username) return response.data;
+
+            try {
+                const sfUserResponse = await api.get('SuccessFactors_API/odata/v2/User', {
+                    params: {
+                        $filter: `username eq '${username}'`,
+                        $select: 'userId,username,displayName,email'
+                    }
+                });
+
+                const sfUser = sfUserResponse.data.d.results?.[0];
+                if (sfUser) {
+                    return {
+                        ...response.data,
+                        userId: sfUser.userId,
+                        displayName: sfUser.displayName || response.data.displayName
+                    };
+                }
+            } catch (sfErr) {
+                console.warn('Failed to map username to userId', sfErr);
+            }
+
             return response.data;
         } catch (error) {
             console.error('Failed to get current user:', error);
@@ -82,19 +200,6 @@ export const sfService = {
     },
 
     /**
-     * 5. [확장] Custom MDF 정보 조회 (설정 데이터 등)
-     */
-    getCustomSettings: async (externalCode) => {
-        try {
-            const response = await api.get(`SuccessFactors_API/odata/v2/cust_AppSettings('${externalCode}')`);
-            return response.data.d;
-        } catch (error) {
-            console.warn(`Settings for ${externalCode} not found`);
-            return null;
-        }
-    },
-
-    /**
      * 6. 평가 마스터 매핑 (MDF) 조회
      */
     getPMPeriodMapping: async () => {
@@ -111,7 +216,6 @@ export const sfService = {
 
     /**
      * 7. 평가 폴더 및 평가서 목록 조회
-     * 모든 폴더(Inbox, En Route, Completed 등)의 정보를 가져와 folderName별로 구분 가능하게 함
      */
     getPerformanceFolders: async (userId) => {
         try {
@@ -130,26 +234,6 @@ export const sfService = {
     },
 
     /**
-     * 8. 팀원 평가 현황 조회 (매니저용)
-     * formSubjectId(피평가자) 필드를 사용하여 특정 대상의 평가서 목록 조회
-     */
-    getTeamPerformanceForms: async (subjectId) => {
-        try {
-            const response = await api.get('SuccessFactors_API/odata/v2/FormHeader', {
-                params: {
-                    $filter: `formSubjectId eq '${subjectId}'`,
-                    $orderby: 'formLastModifiedDate desc',
-                    $select: 'formDataId,formSubjectId,formTitle,formDataStatus,formLastModifiedDate,currentStep'
-                }
-            });
-            return response.data.d.results;
-        } catch (error) {
-            console.error('Failed to get team performance forms:', error);
-            throw error;
-        }
-    },
-
-    /**
      * 8. 평가서 상세 데이터 조회 (Optimized 2-Step Loading)
      */
     async getFormDetail(formContentId, formDataId) {
@@ -160,20 +244,31 @@ export const sfService = {
             });
             const formObj = baseResponse.data.d;
 
-            // STEP 2: 상세 내용 엔티티가 존재하는지 확인 후 개별 조회 (타겟팅 조회)
+            // STEP 2: 상세 내용 엔티티 조회
             try {
                 const detailResponse = await api.get(`SuccessFactors_API/odata/v2/FormPMReviewContentDetail(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
                     params: {
-                        $expand: 'objectiveSections/objectives/selfRatingComment,competencySections/competencies/selfRatingComment,summarySection/selfRatingComment,summarySection/overallFormRating,introductionSection,customSections'
+                        $expand: [
+                            'introductionSection',
+                            'objectiveSections/objectives/selfRatingComment',
+                            'objectiveSections/objectives/officialRating',
+                            'objectiveSections/objectives/othersRatingComment',
+                            'competencySections/competencies/selfRatingComment',
+                            'competencySections/competencies/officialRating',
+                            'competencySections/competencies/othersRatingComment',
+                            'summarySection/selfRatingComment',
+                            'summarySection/overallFormRating',
+                            'summarySection/othersRatingComment',
+                            'customSections'
+                        ].join(',')
                     }
                 });
 
-                // 조회된 상세 데이터를 기본 객체에 병합 (기존 UI 호환을 위해 배열 results 형태로 가공)
                 formObj.pmReviewContentDetail = {
                     results: [detailResponse.data.d]
                 };
             } catch (detailErr) {
-                console.warn(`[PM Detail] This form template might not support targeting FormPMReviewContentDetail directly.`, detailErr.message);
+                console.warn(`[PM Detail] Targeting error`, detailErr.message);
             }
 
             return formObj;
@@ -184,33 +279,29 @@ export const sfService = {
     },
 
     /**
-     * 8-1. 360 다면평가 상세 데이터 조회 (Optimized 2-Step Loading)
+     * 8-1. 360 다면평가 상세 데이터 조회
      */
     async getForm360Detail(formContentId, formDataId) {
         try {
-            // STEP 1: 기본 정보 조회
             const baseResponse = await api.get(`SuccessFactors_API/odata/v2/FormContent(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
                 params: { $expand: 'formHeader' }
             });
             const formObj = baseResponse.data.d;
 
-            // STEP 2: 360 전용 상세 엔티티 조회 (타겟팅 조회)
             try {
                 const detailResponse = await api.get(`SuccessFactors_API/odata/v2/Form360ReviewContentDetail(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
                     params: {
-                        $expand: 'summarySection/selfRatingComment,summarySection/overallFormRating,competencySections/competencies/selfRatingComment,objectiveSections/objectives/selfRatingComment,introductionSection,participantSection,form360RaterSection/form360Raters,summaryViewSection/formRaters,summaryViewSection/categoryWeights,userInformationSection,customSections/customItems/selfRatingComment',
+                        $expand: 'introductionSection,participantSection,form360RaterSection/form360Raters,summaryViewSection/formRaters,summarySection/overallFormRating',
                     }
                 });
-
-                // 360 상세 데이터를 기본 객체의 속성으로 병합
                 Object.assign(formObj, detailResponse.data.d);
             } catch (detailErr) {
-                console.warn(`[360 Detail] This form template might not support targeting Form360ReviewContentDetail directly.`, detailErr.message);
+                console.warn(`[360 Detail] Targeting error`, detailErr.message);
             }
 
             return formObj;
         } catch (error) {
-            console.error(`Failed to get 360 form detail for ${formContentId}:`, error);
+            console.error(`Failed to get 360 form detail:`, error);
             throw error;
         }
     },
@@ -238,10 +329,29 @@ export const sfService = {
      */
     updateFormRating: async (data) => {
         try {
+            // 토큰이 확보된 상태에서 요청 (인터셉터가 헤더 주입)
+            await fetchCsrfToken();
             const response = await api.post('SuccessFactors_API/odata/v2/upsert', data);
             return response.data;
         } catch (error) {
             console.error('Failed to update form rating:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * 10. PM 평가 다음 단계로 전송
+     */
+    sendToNextStep: async (formDataId, options = {}) => {
+        try {
+            const { comment } = options;
+            let url = `SuccessFactors_API/odata/v2/sendToNextStep?formDataId=${formDataId}L`;
+            if (comment) url += `&comment='${encodeURIComponent(comment)}'`;
+
+            const response = await api.get(url);
+            return response.data.d || response.data;
+        } catch (error) {
+            console.error(`Failed to send form ${formDataId} to next step:`, error);
             throw error;
         }
     }

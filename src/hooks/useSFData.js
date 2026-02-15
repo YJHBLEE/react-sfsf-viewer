@@ -22,9 +22,9 @@ export const useSFData = () => {
         setLoading(true);
         setError(null);
         try {
-            // 1. 현재 로그인 세션 확인
+            // 1. 현재 로그인 세션 확인 및 SFSF userId 매핑
             const currentUser = await sfService.getCurrentUser();
-            const userId = currentUser.name || 'sfadmin'; // 로컬 테스트용 기본값
+            const userId = currentUser.userId || currentUser.name || 'sfadmin'; // 매핑된 userId 우선 사용
 
             // 2. 병렬 데이터 로딩 (성능 최적화)
             const [profile, photo, jobHistory] = await Promise.all([
