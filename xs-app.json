@@ -6,12 +6,17 @@
             "target": "$1",
             "destination": "SuccessFactors_API",
             "authenticationType": "xsuaa",
-            "csrfProtection": false
+            "csrfProtection": true,
+            "forwardAuthToken": true,
+            "tokenHandler": {
+                "type": "standard"
+            }
         },
         {
             "source": "^/user-api/(.*)$",
             "target": "$1",
-            "service": "sap-approuter-userapi"
+            "service": "sap-approuter-userapi",
+            "csrfProtection": true
         },
         {
             "source": "^/(.*)$",

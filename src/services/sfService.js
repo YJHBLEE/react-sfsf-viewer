@@ -1,7 +1,7 @@
 /**
  * Project: react-sfsf-viewer
  * File: /src/services/sfService.js
- * Description: SuccessFactors OData API 호출을 관리하는 서비스 모듈 (CSRF & Session 최적화 버전)
+ * Description: SuccessFactors OData API 호출 서비스 (Managed AppRouter 최적화 버전)
  */
 
 import axios from 'axios';
@@ -13,31 +13,36 @@ let isFetchingToken = false;
 // API 인스턴스 설정
 const api = axios.create({
     baseURL: '',
-    withCredentials: true, // 쿠키 및 세션 유지를 위해 필수
+    withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest', // Managed AppRouter 표준 보안 헤더
+        'X-SF-Session-Verify': '1' // 세션 유효성 강제 검증 헤더
     },
 });
 
 /**
- * [Interceptors] Request: 토큰 자동 주입 및 Proactive Fetching
+ * [디버그 로그] CSRF 및 세션 관련 정보를 콘솔에 상세히 출력
+ */
+const logCSRF = (msg, data = '') => {
+    console.log(`%c[CSRF-SAFE] ${msg}`, 'background: #e0f2fe; color: #0369a1; font-weight: bold; padding: 2px 4px; border-radius: 4px;', data);
+};
+
+/**
+ * [Interceptors] Request: 저장된 토큰 주입
  */
 api.interceptors.request.use(
-    (config) => {
+    async (config) => {
         const method = config.method?.toUpperCase();
+        logCSRF(`Request: ${method} ${config.url}`);
 
-        // 1. 모든 GET 요청 시 토큰 획득 시도 (Proactive Fetching)
-        if (method === 'GET') {
-            config.headers['x-csrf-token'] = 'fetch';
-        }
-
-        // 2. 쓰기 요청 시 캐싱된 토큰 주입
+        // 쓰기 작업 시 토큰 주입
         if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-            if (cachedCsrfToken) {
-                config.headers['x-csrf-token'] = cachedCsrfToken;
-            } else {
-                config.headers['x-csrf-token'] = 'fetch';
+            if (!cachedCsrfToken) {
+                logCSRF('No cached token found. Fetching from AppRouter...');
+                cachedCsrfToken = await fetchAppRouterToken();
             }
+            config.headers['x-csrf-token'] = cachedCsrfToken;
         }
         return config;
     },
@@ -45,34 +50,31 @@ api.interceptors.request.use(
 );
 
 /**
- * [Interceptors] Response: 토큰 자동 캡처 및 403 에러 발생 시 재시도
+ * [Interceptors] Response: 오직 403 에러 발생 시에만 토큰 갱신에 관여
  */
 api.interceptors.response.use(
     (response) => {
-        // 응답 헤더에서 토큰 캡처
-        const token = response.headers['x-csrf-token'] || response.headers['X-CSRF-Token'];
-        if (token && !['required', 'fetch', 'none'].includes(token.toLowerCase())) {
-            cachedCsrfToken = token;
+        // 성공 응답 시에는 별도의 토큰 캡처를 수행하지 않음 (세션 일관성 유지)
+        if (response.headers['x-sf-session-valid']) {
+            logCSRF('Session Validated by SFSF');
         }
         return response;
     },
     async (error) => {
         const originalRequest = error.config;
 
-        // CSRF 토큰 만료(403) 시 자동 갱신 및 재시도 로직
+        // 403 Forbidden(CSRF 만료) 발생 시 자동 갱신 및 재시도
         if (error.response?.status === 403 && !originalRequest._retry) {
-            const tokenMsg = error.response.headers?.['x-csrf-token'];
-            if (tokenMsg?.toLowerCase() === 'required' || error.response.data?.error?.message?.value?.includes('CSRF')) {
-                originalRequest._retry = true;
-                cachedCsrfToken = null;
+            logCSRF('403 Forbidden Detected. Token might be expired. Retrying...');
+            originalRequest._retry = true;
 
-                // 토큰 재취득 (새로운 세션 쿠키와 토큰 확보)
-                const newToken = await fetchCsrfToken();
-                if (newToken) {
-                    originalRequest.headers['x-csrf-token'] = newToken;
-                    // 원래 요청 재수행
-                    return api(originalRequest);
-                }
+            cachedCsrfToken = null; // 기존 토큰 무효화
+            const newToken = await fetchAppRouterToken();
+
+            if (newToken) {
+                originalRequest.headers['x-csrf-token'] = newToken;
+                logCSRF('Retrying original request with new AppRouter token');
+                return api(originalRequest);
             }
         }
         return Promise.reject(error);
@@ -80,28 +82,30 @@ api.interceptors.response.use(
 );
 
 /**
- * CSRF 토큰 획득 함수 (Proactive & Reactive Hybrid)
+ * Managed AppRouter(user-api)로부터 CSRF 토큰을 획득하는 함수
  */
-const fetchCsrfToken = async () => {
-    if (cachedCsrfToken) return cachedCsrfToken;
-
-    // 중복 호출 방지 (Lock)
+const fetchAppRouterToken = async () => {
     if (isFetchingToken) {
-        let retries = 0;
-        while (isFetchingToken && retries < 50) {
-            await new Promise(r => setTimeout(r, 100));
-            retries++;
-        }
+        while (isFetchingToken) { await new Promise(r => setTimeout(r, 100)); }
         return cachedCsrfToken;
     }
 
     try {
         isFetchingToken = true;
-        // 가장 빠른 응답을 주는 API로 토큰과 쿠키 획득
-        await api.get('SuccessFactors_API/odata/v2/$metadata');
-        return cachedCsrfToken;
+        logCSRF('Fetching fresh CSRF token from Managed AppRouter (user-api)...');
+
+        // SFSF API가 아닌 AppRouter 레벨의 API에 요청하여 AppRouter가 발급한 토큰을 받음
+        const response = await api.get('user-api/currentUser', {
+            headers: { 'x-csrf-token': 'fetch' }
+        });
+
+        const token = response.headers['x-csrf-token'] || response.headers['X-CSRF-Token'];
+        logCSRF('AppRouter Token Secured:', token);
+
+        cachedCsrfToken = token;
+        return token;
     } catch (error) {
-        console.error('[sfService] Fails to fetch CSRF token:', error);
+        logCSRF('CRITICAL: Failed to refresh AppRouter token', error.message);
         return null;
     } finally {
         isFetchingToken = false;
@@ -114,6 +118,7 @@ export const sfService = {
      */
     getCurrentUser: async () => {
         try {
+            // 인터셉터가 토큰 관리를 하므로 여기선 단순 데이터 조회
             const response = await api.get('user-api/currentUser');
             const username = response.data.name;
 
@@ -238,13 +243,11 @@ export const sfService = {
      */
     async getFormDetail(formContentId, formDataId) {
         try {
-            // STEP 1: 기본 정보(Header)만 가볍게 조회
             const baseResponse = await api.get(`SuccessFactors_API/odata/v2/FormContent(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
                 params: { $expand: 'formHeader' }
             });
             const formObj = baseResponse.data.d;
 
-            // STEP 2: 상세 내용 엔티티 조회
             try {
                 const detailResponse = await api.get(`SuccessFactors_API/odata/v2/FormPMReviewContentDetail(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
                     params: {
@@ -279,24 +282,49 @@ export const sfService = {
     },
 
     /**
-     * 8-1. 360 다면평가 상세 데이터 조회
+     * 8-1. 360 다면평가 상세 데이터 조회 (504 타임아웃 방지를 위해 호출 분할)
      */
     async getForm360Detail(formContentId, formDataId) {
         try {
+            logCSRF('Starting 2-Step 360 Detail Load to prevent 504 Timeout');
+
+            // STEP 1: 기본 정보 및 참가자, 요약 정보 로드
             const baseResponse = await api.get(`SuccessFactors_API/odata/v2/FormContent(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
                 params: { $expand: 'formHeader' }
             });
             const formObj = baseResponse.data.d;
 
             try {
-                const detailResponse = await api.get(`SuccessFactors_API/odata/v2/Form360ReviewContentDetail(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
+                const step1Response = await api.get(`SuccessFactors_API/odata/v2/Form360ReviewContentDetail(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
                     params: {
-                        $expand: 'introductionSection,participantSection,form360RaterSection/form360Raters,summaryViewSection/formRaters,summarySection/overallFormRating',
+                        $expand: [
+                            'introductionSection',
+                            'participantSection',
+                            'form360RaterSection/form360Raters',
+                            'summaryViewSection/formRaters',
+                            'summarySection/overallFormRating',
+                            'summarySection/selfRatingComment'
+                        ].join(',')
                     }
                 });
-                Object.assign(formObj, detailResponse.data.d);
+                Object.assign(formObj, step1Response.data.d);
+
+                // STEP 2: 무거운 성과, 역량, 커스텀 섹션 로드
+                const step2Response = await api.get(`SuccessFactors_API/odata/v2/Form360ReviewContentDetail(formContentId=${formContentId}L,formDataId=${formDataId}L)`, {
+                    params: {
+                        $expand: [
+                            'objectiveSections/objectives/selfRatingComment',
+                            'objectiveSections/objectives/othersRatingComment',
+                            'competencySections/competencies/selfRatingComment',
+                            'competencySections/competencies/othersRatingComment',
+                            'customSections'
+                        ].join(',')
+                    }
+                });
+                Object.assign(formObj, step2Response.data.d);
+
             } catch (detailErr) {
-                console.warn(`[360 Detail] Targeting error`, detailErr.message);
+                console.warn(`[360 Detail] Partial loading error / Timeout`, detailErr.message);
             }
 
             return formObj;
@@ -329,8 +357,7 @@ export const sfService = {
      */
     updateFormRating: async (data) => {
         try {
-            // 토큰이 확보된 상태에서 요청 (인터셉터가 헤더 주입)
-            await fetchCsrfToken();
+            // 인터셉터가 토큰 주입 및 만료 시 재시도를 자동으로 처리합니다.
             const response = await api.post('SuccessFactors_API/odata/v2/upsert', data);
             return response.data;
         } catch (error) {
@@ -352,6 +379,19 @@ export const sfService = {
             return response.data.d || response.data;
         } catch (error) {
             console.error(`Failed to send form ${formDataId} to next step:`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * 11. 360 평가 완료 처리
+     */
+    complete360: async (formDataId) => {
+        try {
+            const response = await api.get(`SuccessFactors_API/odata/v2/complete360?formDataId=${formDataId}L`);
+            return response.data.d || response.data;
+        } catch (error) {
+            console.error(`Failed to complete 360 form ${formDataId}:`, error);
             throw error;
         }
     }
