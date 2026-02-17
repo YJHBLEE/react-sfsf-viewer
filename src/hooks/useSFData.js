@@ -6,8 +6,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { sfService } from '../services/sfService';
+import { useApp } from '../context/AppContext';
 
 export const useSFData = () => {
+    const { setCurrentUser } = useApp();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [data, setData] = useState({
@@ -22,11 +24,14 @@ export const useSFData = () => {
         setLoading(true);
         setError(null);
         try {
-            // 1. 현재 로그인 세션 확인 및 SFSF userId 매핑
+            // 1. 현재 로그인 세션 확인 및 Backend API를 통한 userId 매핑
             const currentUser = await sfService.getCurrentUser();
-            const userId = currentUser.userId || currentUser.name || 'sfadmin'; // 매핑된 userId 우선 사용
+            const userId = currentUser.userId;
 
-            // 2. 병렬 데이터 로딩 (성능 최적화)
+            // 2. Context에 전역 유저 정보 저장
+            setCurrentUser(currentUser);
+
+            // 3. 병렬 데이터 로딩 (성능 최적화)
             const [profile, photo, jobHistory] = await Promise.all([
                 sfService.getUserProfile(userId),
                 sfService.getUserPhoto(userId),
@@ -38,7 +43,7 @@ export const useSFData = () => {
                 profile,
                 photo,
                 jobHistory,
-                settings: null // 향후 Custom MDF 설정 데이터 연결부
+                settings: null
             });
         } catch (err) {
             console.error('Error fetching SF data:', err);
@@ -46,7 +51,7 @@ export const useSFData = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [setCurrentUser]);
 
     useEffect(() => {
         fetchData();

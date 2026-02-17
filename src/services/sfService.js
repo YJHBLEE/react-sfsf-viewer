@@ -114,40 +114,48 @@ const fetchAppRouterToken = async () => {
 
 export const sfService = {
     /**
-     * 1. 현재 로그인한 사용자 정보 가져오기
+     * 1. 현재 로그인한 사용자 정보 가져오기 (Backend CAP API 활용)
+     * SuccessFactors OData User API 권한이 없는 사용자를 위해 구축된 
+     * /api/projman/SFSF_User 경로를 호출하여 userId를 확보합니다.
      */
     getCurrentUser: async () => {
         try {
-            // 인터셉터가 토큰 관리를 하므로 여기선 단순 데이터 조회
-            const response = await api.get('user-api/currentUser');
-            const username = response.data.name;
+            logCSRF('Fetching user identification from Backend API...');
 
-            if (!username) return response.data;
+            // 1. AppRouter 기본 정보 (name 필드 등) 확인
+            const appRouterResponse = await api.get('user-api/currentUser');
+            const appRouterUser = appRouterResponse.data;
 
-            try {
-                const sfUserResponse = await api.get('SuccessFactors_API/odata/v2/User', {
-                    params: {
-                        $filter: `username eq '${username}'`,
-                        $select: 'userId,username,displayName,email'
-                    }
-                });
+            // 2. 전용 Backend API를 통해 실제 SF userId 매핑 정보 가져오기
+            // 리턴 구조: {"value": [{"userId": "ronald.lee", ...}]}
+            const backendUserResponse = await api.get('api/projman/SFSF_User');
+            const backendUserData = backendUserResponse.data.value?.[0];
 
-                const sfUser = sfUserResponse.data.d.results?.[0];
-                if (sfUser) {
-                    return {
-                        ...response.data,
-                        userId: sfUser.userId,
-                        displayName: sfUser.displayName || response.data.displayName
-                    };
-                }
-            } catch (sfErr) {
-                console.warn('Failed to map username to userId', sfErr);
+            if (backendUserData) {
+                logCSRF('User identified via Backend API:', backendUserData.userId);
+                return {
+                    ...appRouterUser,
+                    userId: backendUserData.userId,
+                    username: backendUserData.username,
+                    displayName: backendUserData.defaultFullName || appRouterUser.displayName,
+                    email: backendUserData.email || appRouterUser.email
+                };
             }
 
-            return response.data;
+            logCSRF('Warning: Backend API returned no user data. Falling back to AppRouter info.');
+            return {
+                ...appRouterUser,
+                userId: appRouterUser.name // Fallback
+            };
         } catch (error) {
-            console.error('Failed to get current user:', error);
-            throw error;
+            console.error('Failed to get current user via Backend API:', error);
+            // 최후의 수단으로 AppRouter 정보만이라도 반환
+            try {
+                const fallback = await api.get('user-api/currentUser');
+                return { ...fallback.data, userId: fallback.data.name };
+            } catch (e) {
+                throw error;
+            }
         }
     },
 

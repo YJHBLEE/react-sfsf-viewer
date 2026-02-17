@@ -1,0 +1,15 @@
+---
+exportTime: "2026-02-17 04:52:24.892574383"
+destination:
+  Name: "sfsf-smarthr-app-api"
+  Type: "HTTP"
+  Description: "Smart HR CAP service (Manual Setup)"
+  URL: "https://sfsf-smarthr-api.cfapps.us10-001.hana.ondemand.com"
+  ProxyType: "Internet"
+  Authentication: "NoAuthentication"
+  HTML5.DynamicDestination: "true"
+  HTML5.Timeout: "120000"
+  WebIDEEnabled: "true"
+  HTML5.ForwardAuthToken: "true"
+  HTML5.SetXForwardedHeaders: "true"
+  TrustAll: "true"

@@ -33,6 +33,9 @@ export const AppProvider = ({ children }) => {
         }
     });
 
+    // 4. 현재 로그인 유저 정보 (인증 및 userId 매핑 결과 저장)
+    const [currentUser, setCurrentUser] = useState(null);
+
     // 알림 읽음 처리 기능
     const markAsRead = (id) => {
         setNotifications(prev =>
@@ -48,9 +51,11 @@ export const AppProvider = ({ children }) => {
         setNotifications,
         appSettings,
         setAppSettings,
+        currentUser,
+        setCurrentUser,
         markAsRead,
         unreadCount: notifications.filter(n => !n.read).length
-    }), [language, notifications, appSettings]);
+    }), [language, notifications, appSettings, currentUser]);
 
     return (
         <AppContext.Provider value={value}>
