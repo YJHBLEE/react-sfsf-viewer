@@ -127,18 +127,26 @@ export const sfService = {
             const appRouterUser = appRouterResponse.data;
 
             // 2. 전용 Backend API를 통해 실제 SF userId 매핑 정보 가져오기
-            // 리턴 구조: {"value": [{"userId": "ronald.lee", ...}]}
-            const backendUserResponse = await api.get('api/projman/SFSF_User');
-            const backendUserData = backendUserResponse.data.value?.[0];
+            // 로컬 환경(localhost)에서는 Backend API 대신 'sfadmin' 계정으로 데이터 조회
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            let backendUserData;
+
+            if (isLocal) {
+                logCSRF('Local environment detected. Fetching sfadmin profile via OData...');
+                const localResponse = await api.get("SuccessFactors_API/odata/v2/User('sfadmin')");
+                backendUserData = localResponse.data.d;
+            } else {
+                // 리턴 구조: {"value": [{"userId": "ronald.lee", ...}]}
+                const backendUserResponse = await api.get('api/projman/SFSF_User');
+                backendUserData = backendUserResponse.data.value?.[0];
+            }
 
             if (backendUserData) {
-                logCSRF('User identified via Backend API:', backendUserData.userId);
+                logCSRF('User identified:', backendUserData.userId);
                 return {
                     ...appRouterUser,
-                    userId: backendUserData.userId,
-                    username: backendUserData.username,
-                    displayName: backendUserData.defaultFullName || appRouterUser.displayName,
-                    email: backendUserData.email || appRouterUser.email
+                    ...backendUserData, // Backend 또는 OData에서 제공하는 상세 프로필 필드 전체 포함
+                    displayName: backendUserData.defaultFullName || backendUserData.displayName || appRouterUser.displayName
                 };
             }
 

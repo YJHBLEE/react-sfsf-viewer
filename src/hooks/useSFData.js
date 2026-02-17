@@ -24,23 +24,23 @@ export const useSFData = () => {
         setLoading(true);
         setError(null);
         try {
-            // 1. 현재 로그인 세션 확인 및 Backend API를 통한 userId 매핑
-            const currentUser = await sfService.getCurrentUser();
-            const userId = currentUser.userId;
+            // 1. Backend API를 통해 유저 및 프로필 정보를 통합 획득
+            const userWithProfile = await sfService.getCurrentUser();
+            const userId = userWithProfile.userId;
 
             // 2. Context에 전역 유저 정보 저장
-            setCurrentUser(currentUser);
+            setCurrentUser(userWithProfile);
 
-            // 3. 병렬 데이터 로딩 (성능 최적화)
-            const [profile, photo, jobHistory] = await Promise.all([
-                sfService.getUserProfile(userId),
+            // 3. 획득한 userId를 기반으로 나머지 후속 데이터만 로딩 (성능 최적화)
+            // 권한 이슈가 잦은 OData getUserProfile은 더 이상 호출하지 않습니다.
+            const [photo, jobHistory] = await Promise.all([
                 sfService.getUserPhoto(userId),
                 sfService.getJobHistory(userId),
             ]);
 
             setData({
-                user: currentUser,
-                profile,
+                user: userWithProfile,
+                profile: userWithProfile, // Backend API 정보가 곧 프로필이 됨
                 photo,
                 jobHistory,
                 settings: null
