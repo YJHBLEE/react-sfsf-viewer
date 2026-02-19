@@ -10,7 +10,10 @@
         "workspace": "워크스페이스",
         "language": "언어 변경",
         "settings": "개인 설정",
-        "logout": "로그아웃"
+        "logout": "로그아웃",
+        "myCareer": "나의 커리어",
+        "myEvaluations": "나의 평가",
+        "writeEvaluation": "평가서 작성"
     },
     "header": {
         "searchPlaceholder": "사람, 메뉴, 평가서 검색...",
@@ -84,6 +87,39 @@
         "submitSuccess": "평가서가 성공적으로 제출되었습니다.",
         "submitError": "평가서 제출 중 오류가 발생했습니다.",
         "saving": "저장 중...",
-        "submitting": "제출 중..."
+        "submitting": "제출 중...",
+        "retry": "다시 시도하기",
+        "goHome": "홈으로 돌아가기",
+        "contactSupport": "문제가 지속되면 시스템 가이드를 확인해 주세요."
+    },
+    "error": {
+        "404": {
+            "title": "길을 잃으셨나요?",
+            "desc": "찾으시는 페이지가 없거나 권한이 부족하여 볼 수 없어요."
+        },
+        "403": {
+            "title": "접근 권한이 없어요",
+            "desc": "해당 데이터를 보기 위한 권한이 부족한 것 같아요. 관리자에게 문의해 주세요."
+        },
+        "500": {
+            "title": "잠시 연결이 원활하지 않아요",
+            "desc": "시스템에 일시적인 문제가 생겼습니다. 잠시 후 다시 시도해 주세요."
+        }
+    },
+    "career": {
+        "welcome": "{{name}}님, 환영합니다",
+        "welcomeMessage": "오늘도 성장을 향해 한 걸음 더 나아가 볼까요? 주요 일정과 목표를 확인해 보세요.",
+        "majorSchedule": "주요 일정",
+        "growToday": "오늘도 성장해봐요",
+        "myStatus": "나의 상태",
+        "schedule": {
+            "selfEval": "자가 평가 마감",
+            "1on1": "매니저 1:1 면담",
+            "goalSetting": "2024 목표 설정"
+        }
+    },
+    "eval": {
+        "trendTitle": "성과 트렌드",
+        "historyTitle": "평가 이력"
     }
 }

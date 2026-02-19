@@ -10,7 +10,10 @@
         "workspace": "ワークスペース",
         "language": "言語変更",
         "settings": "個人設定",
-        "logout": "ログアウト"
+        "logout": "ログアウト",
+        "myCareer": "マイキャリア",
+        "myEvaluations": "マイ評価",
+        "writeEvaluation": "評価書作成"
     },
     "header": {
         "searchPlaceholder": "人、メニュー、評価書を検索...",
@@ -84,6 +87,39 @@
         "submitSuccess": "評価書が正常に提出されました。",
         "submitError": "評価書の提出中にエラーが発生しました。",
         "saving": "保存中...",
-        "submitting": "提出中..."
+        "submitting": "提出중...",
+        "retry": "再試行",
+        "goHome": "ホームに戻る",
+        "contactSupport": "問題が解決しない場合は、システムガイドを確認してください。"
+    },
+    "error": {
+        "404": {
+            "title": "お探しの方ですか？",
+            "desc": "お探しのページが存在しないか、表示する権限がありません。"
+        },
+        "403": {
+            "title": "アクセス権限がありません",
+            "desc": "このデータを表示するための権한이不足しているようです。管理者に問い合わせてください。"
+        },
+        "500": {
+            "title": "接続が不安定です",
+            "desc": "システムに一時的な問題が発生しました。しばらくしてからもう一度お試しください。"
+        }
+    },
+    "career": {
+        "welcome": "{{name}}さん、ようこそ",
+        "welcomeMessage": "今日も成長に向けて一歩踏み出してみませんか？主なスケジュールと目標を確認しましょう。",
+        "majorSchedule": "主なスケジュール",
+        "growToday": "今日の成長",
+        "myStatus": "ステータス",
+        "schedule": {
+            "selfEval": "自己評価締切",
+            "1on1": "マネージャー 1:1 面談",
+            "goalSetting": "2024 目標設定"
+        }
+    },
+    "eval": {
+        "trendTitle": "パフォーマンス・トレンド",
+        "historyTitle": "評価履歴"
     }
 }

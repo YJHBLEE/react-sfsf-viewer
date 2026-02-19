@@ -10,7 +10,10 @@
         "workspace": "Workspace",
         "language": "Change Language",
         "settings": "Settings",
-        "logout": "Logout"
+        "logout": "Logout",
+        "myCareer": "My Career",
+        "myEvaluations": "My Evaluations",
+        "writeEvaluation": "Write Evaluation"
     },
     "header": {
         "searchPlaceholder": "Search people, menu, evaluation...",
@@ -84,6 +87,39 @@
         "submitSuccess": "The form has been submitted successfully.",
         "submitError": "An error occurred while submitting the form.",
         "saving": "Saving...",
-        "submitting": "Submitting..."
+        "submitting": "Submitting...",
+        "retry": "Try Again",
+        "goHome": "Go to Home",
+        "contactSupport": "If the problem persists, please check the system guide."
+    },
+    "error": {
+        "404": {
+            "title": "Are you lost?",
+            "desc": "The page you looking for doesn't exist or you don't have permission to view it."
+        },
+        "403": {
+            "title": "Access Denied",
+            "desc": "It seems you don't have enough permission to see this data. Please contact your administrator."
+        },
+        "500": {
+            "title": "Connection is unstable",
+            "desc": "A temporary problem has occurred in the system. Please try again in a moment."
+        }
+    },
+    "career": {
+        "welcome": "Welcome, {{name}}",
+        "welcomeMessage": "Ready to grow today? Check your upcoming schedules and goals.",
+        "majorSchedule": "Major Schedule",
+        "growToday": "Grow Today",
+        "myStatus": "My Status",
+        "schedule": {
+            "selfEval": "Self Evaluation Due",
+            "1on1": "1:1 with Manager",
+            "goalSetting": "Goal Setting 2024"
+        }
+    },
+    "eval": {
+        "trendTitle": "Performance Trend",
+        "historyTitle": "Evaluation History"
     }
 }
