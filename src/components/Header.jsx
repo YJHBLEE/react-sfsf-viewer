@@ -53,7 +53,7 @@ const Header = ({ profile, photo, activeTab, onNavigate }) => {
                 <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center">
                         <img
-                            src="/lotte_logo.png"
+                            src="/logo.png"
                             alt="LOTTE"
                             className="h-8 w-auto min-w-[32px] object-contain"
                             onError={(e) => {
@@ -66,7 +66,7 @@ const Header = ({ profile, photo, activeTab, onNavigate }) => {
                     </div>
                     <div className="h-4 w-[1px] bg-slate-300 hidden sm:block"></div>
                     <span className="text-slate-500 font-bold tracking-tight text-sm sm:text-base whitespace-nowrap">
-                        LOTTE <span className="text-slate-400 font-light">Assessment</span>
+                        <span style={{ color: LOTTE_RED }}>LOTTE</span> <span className="text-slate-400 font-light">Assessment</span>
                     </span>
                 </div>
 
@@ -77,8 +77,8 @@ const Header = ({ profile, photo, activeTab, onNavigate }) => {
                             key={item.id}
                             onClick={() => onNavigate && onNavigate(item.id)}
                             className={`px-5 py-5 text-sm font-bold transition-all relative ${activeTab === item.id
-                                    ? 'text-[#DA291C]'
-                                    : 'text-slate-500 hover:text-slate-800'
+                                ? 'text-[#DA291C]'
+                                : 'text-slate-500 hover:text-slate-800'
                                 }`}
                         >
                             {item.label}
@@ -177,8 +177,8 @@ const Header = ({ profile, photo, activeTab, onNavigate }) => {
                                                     setIsMenuOpen(false);
                                                 }}
                                                 className={`py-1 rounded text-[10px] font-bold border transition-all ${language === lang.code
-                                                        ? 'text-white'
-                                                        : 'bg-white border-slate-200 text-slate-600 hover:border-red-300'
+                                                    ? 'text-white'
+                                                    : 'bg-white border-slate-200 text-slate-600 hover:border-red-300'
                                                     }`}
                                                 style={language === lang.code ? { backgroundColor: LOTTE_RED, borderColor: LOTTE_RED } : {}}
                                             >
