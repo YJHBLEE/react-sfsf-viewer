@@ -1,15 +1,15 @@
 /**
  * Project: react-sfsf-viewer
  * File: /src/components/PMDetailView.jsx
- * Description: 매니저 평가 기능이 강화된 성과평가(PM v12) 상세 뷰 컴포넌트
+ * Description: 업무 시스템 느낌의 성과평가(PM v12) 상세 뷰 컴포넌트
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ChevronLeft, Target, Award, MessageSquare, Info,
-    Save, Clock, FileText, ChevronRight, Quote, Send,
-    Brain, Zap, TrendingUp, Star, Layout, Users, UserCheck, MessageCircle
+    ChevronLeft, Target, Award, Info,
+    Save, Clock, Send,
+    Star, Layout, Users, UserCheck, MessageCircle
 } from 'lucide-react';
 import { sfService } from '../services/sfService';
 import RouteMapStepView from './RouteMapStepView';
@@ -327,56 +327,11 @@ const PMDetailView = ({ form, onBack }) => {
         return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ');
     };
 
-    const FeedbackCard = ({ title, rating, comment, icon: Icon, avatar, color, isEditable, onRatingChange, onCommentChange, permission = 'none' }) => (
-        <div className={`p-6 rounded-[2rem] border ${color === 'blue' ? 'border-blue-100 bg-blue-50/10' : 'border-slate-100 bg-slate-50/30'} space-y-4 transition-all`}>
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                    {avatar ? (
-                        <div className="w-8 h-8 rounded-xl overflow-hidden shadow-sm border border-white">
-                            <img src={avatar} alt={title} className="w-full h-full object-cover" />
-                        </div>
-                    ) : (
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${color === 'blue' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
-                            <Icon size={16} />
-                        </div>
-                    )}
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{title}</span>
-                </div>
-                {rating !== undefined && (
-                    <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map(v => (
-                            <button
-                                key={v}
-                                disabled={!isEditable || (isEditable && permission === 'none')}
-                                onClick={() => onRatingChange?.(String(v))}
-                                className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border transition-all ${parseFloat(v) === parseFloat(rating) ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-200'}`}
-                            >
-                                {v}
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </div>
-            {isEditable && permission !== 'none' ? (
-                <textarea
-                    value={comment || ''}
-                    onChange={(e) => onCommentChange?.(e.target.value)}
-                    className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-xs font-medium text-slate-700 outline-none focus:ring-4 focus:ring-indigo-50/50 transition-all min-h-[90px]"
-                    placeholder={`${title} 의견을 입력해주세요...`}
-                />
-            ) : (
-                <div className="text-xs text-slate-600 font-medium leading-relaxed bg-white/60 p-4 rounded-2xl border border-white">
-                    {comment || <span className="text-slate-300 italic">No feedback provided.</span>}
-                </div>
-            )}
-        </div>
-    );
-
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center p-20 space-y-4">
                 <div className="w-12 h-12 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin"></div>
-                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">{t('common.loading')}</p>
+                <p className="text-sm font-bold text-slate-400">{t('common.loading')}</p>
             </div>
         );
     }
@@ -384,134 +339,266 @@ const PMDetailView = ({ form, onBack }) => {
     const activeSection = sections.find(s => s.id === activeSectionId);
 
     return (
-        <div className="space-y-6 animate-in slide-in-from-right duration-500 pb-20">
-            {/* Header Controls */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-30 bg-[#f8fafc]/80 backdrop-blur-md py-2">
-                <button onClick={onBack} className="group px-4 py-2 bg-white border border-slate-200 rounded-2xl flex items-center gap-2 hover:bg-slate-50 shadow-sm w-fit transition-all">
-                    <ChevronLeft size={16} className="text-slate-400 group-hover:text-indigo-600" />
-                    <span className="text-xs font-black text-slate-600 uppercase tracking-tight">{t('common.back')}</span>
-                </button>
-                <div className="flex gap-2">
-                    <button onClick={handleSave} disabled={isSaving} className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-2xl flex items-center gap-2 font-black text-xs uppercase tracking-widest hover:border-indigo-600 hover:text-indigo-600 transition-all shadow-sm">
-                        {isSaving ? <div className="w-4 h-4 border-2 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin"></div> : <Save size={16} />}
-                        <span>{t('common.save')}</span>
+        <div className="min-h-screen bg-[#f8fafc] pb-20">
+            {/* Sticky Header with Timeline and Actions */}
+            <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+                {/* Top Action Bar */}
+                <div className="flex items-center justify-between px-6 py-3 border-b border-slate-100">
+                    <button onClick={onBack} className="group flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-lg transition-all">
+                        <ChevronLeft size={16} className="text-slate-400 group-hover:text-indigo-600" />
+                        <span className="text-xs font-bold text-slate-600">{t('common.back')}</span>
                     </button>
-                    <button onClick={handleSubmit} disabled={isSubmitting || isSaving} className="px-6 py-2.5 bg-indigo-600 text-white rounded-2xl flex items-center gap-2 font-black text-xs uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all transform active:scale-95">
-                        {isSubmitting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Send size={16} />}
-                        <span>{t('common.submit')}</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* Form Info Card */}
-            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-                <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <div className="space-y-4">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-indigo-100">
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-md text-[10px] font-bold">
                             <Clock size={12} /> {detail?.formHeader?.formDataStatus || 'IN PROGRESS'}
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">{form.formTitle}</h2>
-                        <div className="flex flex-wrap gap-4 text-slate-500 text-xs font-bold">
-                            <span className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100"><Users size={14} /> {detail?.formHeader?.formSubjectId}</span>
-                            <span className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100"><Layout size={14} /> {t('pm.type.v12')}</span>
-                        </div>
+                        <button onClick={handleSave} disabled={isSaving} className="px-4 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-md flex items-center gap-1.5 font-bold text-xs hover:border-indigo-600 hover:text-indigo-600 transition-all">
+                            {isSaving ? <div className="w-3.5 h-3.5 border-2 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin"></div> : <Save size={14} />}
+                            <span>{t('common.save')}</span>
+                        </button>
+                        <button onClick={handleSubmit} disabled={isSubmitting || isSaving} className="px-4 py-1.5 bg-indigo-600 text-white rounded-md flex items-center gap-1.5 font-bold text-xs hover:bg-indigo-700 transition-all">
+                            {isSubmitting ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Send size={14} />}
+                            <span>{t('common.submit')}</span>
+                        </button>
                     </div>
                 </div>
-                <RouteMapStepView routeMap={routeMap} color="indigo" title="Process Timeline" />
+
+                {/* Form Info and Timeline */}
+                <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-indigo-50/30">
+                    <div className="flex items-center justify-between mb-3">
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-900">{form.formTitle}</h2>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
+                                <span className="flex items-center gap-1.5"><Users size={12} /> {detail?.formHeader?.formSubjectId}</span>
+                                <span className="flex items-center gap-1.5"><Layout size={12} /> {t('pm.type.v12')}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <RouteMapStepView routeMap={routeMap} color="indigo" title="Process Timeline" />
+                </div>
+
+                {/* Section Tabs */}
+                <div className="px-6 overflow-x-auto">
+                    <div className="flex items-center gap-1 min-w-max">
+                        {sections.map(sec => (
+                            <button
+                                key={sec.id}
+                                onClick={() => setActiveSectionId(sec.id)}
+                                className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-all border-b-2 ${
+                                    activeSectionId === sec.id
+                                        ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
+                                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                                }`}
+                            >
+                                <sec.icon size={14} />
+                                <span>{sec.title}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-8">
-                {/* LNB */}
-                <div className="w-full lg:w-72 shrink-0 space-y-1.5 bg-white p-4 rounded-3xl border border-slate-200 h-fit sticky top-24 z-20 shadow-sm">
-                    <p className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Sections</p>
-                    {sections.map(sec => (
-                        <button key={sec.id} onClick={() => setActiveSectionId(sec.id)} className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-left transition-all ${activeSectionId === sec.id ? 'bg-indigo-600 text-white shadow-xl scale-[1.02]' : 'text-slate-500 hover:bg-slate-50'}`}>
-                            <div className="flex items-center gap-3">
-                                <sec.icon size={18} />
-                                <span className="text-[11px] font-black tracking-tight">{sec.title}</span>
-                            </div>
-                            <ChevronRight size={14} className={activeSectionId === sec.id ? 'opacity-100' : 'opacity-0'} />
-                        </button>
-                    ))}
-                </div>
-
-                {/* Content Area */}
-                <div className="flex-1 w-full min-w-0">
-                    {activeSection?.type === 'intro' && (
-                        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm animate-in fade-in">
-                            <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><Info size={20} /></div> {activeSection.title}
-                            </h3>
-                            <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-100 text-sm text-slate-600 leading-relaxed font-medium">
-                                {cleanHtml(activeSection.data.sectionDescription)}
-                            </div>
+            {/* Content Area - Full Width */}
+            <div className="px-6 py-6">
+                {activeSection?.type === 'intro' && (
+                    <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+                        <div className="bg-slate-50 p-5 rounded-md border border-slate-100 text-sm text-slate-700 leading-relaxed">
+                            {cleanHtml(activeSection.data.sectionDescription)}
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {(activeSection?.type === 'objective' || activeSection?.type === 'competency') && (
-                        <div className="space-y-6">
-                            <h3 className="text-xl font-black text-slate-800 px-2">{activeSection.data.sectionName}</h3>
-                            <div className="grid grid-cols-1 gap-6">
-                                {(activeSection.type === 'objective' ? activeSection.data.objectives?.results : activeSection.data.competencies?.results)?.map((item, idx) => {
-                                    const key = `${activeSection.id}_${item.itemId}`;
-                                    const input = inputs[key];
-                                    return (
-                                        <div key={idx} className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm space-y-6 hover:border-indigo-100 transition-all">
-                                            <div className="flex items-start gap-4">
-                                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 ${activeSection.type === 'objective' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>{idx + 1}</div>
-                                                <div className="space-y-1">
-                                                    <h4 className="text-lg font-black text-slate-900">{item.name}</h4>
-                                                    <p className="text-xs text-slate-500 font-medium leading-relaxed">{cleanHtml(item.metric || item.description)}</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <FeedbackCard title="Self Feedback" rating={input?.selfRating} comment={input?.selfComment} icon={Users} avatar={subjectPhoto} color="slate" isEditable={false} />
-                                                <FeedbackCard title="Official Review" rating={input?.rating} comment={input?.comment} icon={UserCheck} color="blue" isEditable={true} onRatingChange={v => handleInputChange(key, 'rating', v)} onCommentChange={v => handleInputChange(key, 'comment', v)} permission={input?.ratingPermission} />
-                                            </div>
-
-                                            {input?.others?.length > 0 && (
-                                                <div className="pt-4 border-t border-slate-50">
-                                                    <div className="flex items-center gap-2 mb-4">
-                                                        <MessageCircle size={14} className="text-amber-500" />
-                                                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Other Evaluators</span>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 gap-3">
-                                                        {input.others.map((other, oidx) => (
-                                                            <div key={oidx} className="bg-amber-50/30 border border-amber-100/50 p-4 rounded-2xl relative">
-                                                                <Quote size={12} className="absolute top-4 right-4 text-amber-200" />
-                                                                <div className="flex items-center gap-2 mb-2">
-                                                                    <div className="w-5 h-5 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-[8px] font-black">{other.firstName?.charAt(0) || 'O'}</div>
-                                                                    <span className="text-[10px] font-black text-slate-500">{other.fullName}</span>
-                                                                    <div className={`px-1.5 py-0.5 rounded text-[8px] font-black ${other.rating === '5.0' ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-700'}`}>RATING: {other.rating}</div>
-                                                                </div>
-                                                                <p className="text-xs text-slate-600 font-medium leading-relaxed">{other.comment || 'No comment provided.'}</p>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
+                {(activeSection?.type === 'objective' || activeSection?.type === 'competency') && (
+                    <div className="space-y-3">
+                        {(activeSection.type === 'objective' ? activeSection.data.objectives?.results : activeSection.data.competencies?.results)?.map((item, idx) => {
+                            const key = `${activeSection.id}_${item.itemId}`;
+                            const input = inputs[key];
+                            return (
+                                <div key={idx} className="bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all">
+                                    {/* Item Header - Compact */}
+                                    <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 border-b border-slate-100">
+                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${activeSection.type === 'objective' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                                            {idx + 1}
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-sm font-bold text-slate-900 truncate">{item.name}</h4>
+                                            <p className="text-xs text-slate-500 line-clamp-1">{cleanHtml(item.metric || item.description)}</p>
+                                        </div>
+                                    </div>
 
-                    {activeSection?.type === 'summary' && (
-                        <div className="space-y-6">
-                            <h3 className="text-xl font-black text-slate-800 px-2">{activeSection.title}</h3>
-                            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-8 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 blur-3xl opacity-50"></div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <FeedbackCard title="Self Summary" rating={inputs.summary?.selfRating} comment={inputs.summary?.selfComment} icon={Users} avatar={subjectPhoto} color="slate" isEditable={false} />
-                                    <FeedbackCard title="Official Final Result" rating={inputs.summary?.rating} comment={inputs.summary?.comment} icon={Star} color="blue" isEditable={true} onRatingChange={v => handleInputChange('summary', 'rating', v)} onCommentChange={v => handleInputChange('summary', 'comment', v)} permission={inputs.summary?.ratingPermission} />
+                                    {/* Feedback Grid - Compact Side by Side */}
+                                    <div className="p-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {/* Self Feedback - Read Only */}
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        {subjectPhoto ? (
+                                                            <img src={subjectPhoto} alt="Self" className="w-6 h-6 rounded-full border border-slate-200" />
+                                                        ) : (
+                                                            <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
+                                                                <Users size={12} className="text-slate-400" />
+                                                            </div>
+                                                        )}
+                                                        <span className="text-xs font-bold text-slate-600">Self Feedback</span>
+                                                    </div>
+                                                    {input?.selfRating && (
+                                                        <div className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-bold">
+                                                            {input.selfRating}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="bg-slate-50 border border-slate-100 rounded-md p-3 text-xs text-slate-600 min-h-[80px]">
+                                                    {input?.selfComment || <span className="text-slate-400 italic">No comment</span>}
+                                                </div>
+                                            </div>
+
+                                            {/* Official Review - Editable */}
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
+                                                            <UserCheck size={12} className="text-indigo-600" />
+                                                        </div>
+                                                        <span className="text-xs font-bold text-indigo-600">Official Review</span>
+                                                    </div>
+                                                    {input?.ratingPermission !== 'none' && (
+                                                        <div className="flex gap-1">
+                                                            {[1, 2, 3, 4, 5].map(v => (
+                                                                <button
+                                                                    key={v}
+                                                                    onClick={() => handleInputChange(key, 'rating', String(v))}
+                                                                    className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold border transition-all ${
+                                                                        parseFloat(v) === parseFloat(input?.rating)
+                                                                            ? 'bg-indigo-600 border-indigo-600 text-white'
+                                                                            : 'bg-white border-slate-200 text-slate-300 hover:border-indigo-300'
+                                                                    }`}
+                                                                >
+                                                                    {v}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {input?.commentPermission !== 'none' ? (
+                                                    <textarea
+                                                        value={input?.comment || ''}
+                                                        onChange={(e) => handleInputChange(key, 'comment', e.target.value)}
+                                                        className="w-full bg-white border border-indigo-100 rounded-md px-3 py-2 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-indigo-200 transition-all min-h-[80px]"
+                                                        placeholder="Enter your review..."
+                                                    />
+                                                ) : (
+                                                    <div className="bg-indigo-50 border border-indigo-100 rounded-md p-3 text-xs text-slate-600 min-h-[80px]">
+                                                        {input?.comment || <span className="text-slate-400 italic">No comment</span>}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Other Evaluators - Collapsible */}
+                                        {input?.others?.length > 0 && (
+                                            <div className="mt-3 pt-3 border-t border-slate-100">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <MessageCircle size={12} className="text-amber-600" />
+                                                    <span className="text-xs font-bold text-slate-600">Other Evaluators ({input.others.length})</span>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {input.others.map((other, oidx) => (
+                                                        <div key={oidx} className="bg-amber-50/50 border border-amber-100 p-2.5 rounded-md">
+                                                            <div className="flex items-center gap-2 mb-1.5">
+                                                                <div className="w-4 h-4 rounded-full bg-amber-200 text-amber-700 flex items-center justify-center text-[8px] font-bold">
+                                                                    {other.firstName?.charAt(0) || 'O'}
+                                                                </div>
+                                                                <span className="text-[10px] font-bold text-slate-700">{other.fullName}</span>
+                                                                <span className="ml-auto px-1.5 py-0.5 bg-amber-200 text-amber-800 rounded text-[9px] font-bold">
+                                                                    {other.rating}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-[10px] text-slate-600 leading-relaxed line-clamp-2">
+                                                                {other.comment || 'No comment'}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {activeSection?.type === 'summary' && (
+                    <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+                        <div className="grid grid-cols-2 gap-6">
+                            {/* Self Summary */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        {subjectPhoto ? (
+                                            <img src={subjectPhoto} alt="Self" className="w-7 h-7 rounded-full border border-slate-200" />
+                                        ) : (
+                                            <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center">
+                                                <Users size={14} className="text-slate-400" />
+                                            </div>
+                                        )}
+                                        <span className="text-sm font-bold text-slate-700">Self Summary</span>
+                                    </div>
+                                    {inputs.summary?.selfRating && (
+                                        <div className="px-3 py-1 bg-slate-100 text-slate-700 rounded-md text-sm font-bold">
+                                            {inputs.summary.selfRating}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="bg-slate-50 border border-slate-100 rounded-md p-4 text-sm text-slate-600 min-h-[120px]">
+                                    {inputs.summary?.selfComment || <span className="text-slate-400 italic">No summary provided</span>}
                                 </div>
                             </div>
+
+                            {/* Official Final Result */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            <Star size={14} className="text-indigo-600" />
+                                        </div>
+                                        <span className="text-sm font-bold text-indigo-600">Official Final Result</span>
+                                    </div>
+                                    {inputs.summary?.ratingPermission !== 'none' && (
+                                        <div className="flex gap-1">
+                                            {[1, 2, 3, 4, 5].map(v => (
+                                                <button
+                                                    key={v}
+                                                    onClick={() => handleInputChange('summary', 'rating', String(v))}
+                                                    className={`w-7 h-7 rounded flex items-center justify-center text-xs font-bold border transition-all ${
+                                                        parseFloat(v) === parseFloat(inputs.summary?.rating)
+                                                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
+                                                            : 'bg-white border-slate-200 text-slate-300 hover:border-indigo-300'
+                                                    }`}
+                                                >
+                                                    {v}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                {inputs.summary?.commentPermission !== 'none' ? (
+                                    <textarea
+                                        value={inputs.summary?.comment || ''}
+                                        onChange={(e) => handleInputChange('summary', 'comment', e.target.value)}
+                                        className="w-full bg-white border border-indigo-100 rounded-md px-4 py-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-indigo-200 transition-all min-h-[120px]"
+                                        placeholder="Enter final evaluation summary..."
+                                    />
+                                ) : (
+                                    <div className="bg-indigo-50 border border-indigo-100 rounded-md p-4 text-sm text-slate-600 min-h-[120px]">
+                                        {inputs.summary?.comment || <span className="text-slate-400 italic">No summary provided</span>}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );
